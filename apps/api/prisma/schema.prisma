@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  picks           Pick[]
+  ownedPools      Pool[]            @relation("PoolOwner")
+  poolMemberships PoolMembership[]
+  aiSuggestions   AISuggestion[]
+  calendarEvents  CalendarEvent[]
+
+  @@map("users")
+}
+
+model Pool {
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(100)
+  description  String?
+  inviteCode   String @unique @map("invite_code") @db.VarChar(20)
+  ownerId      Int    @map("owner_id")
+  scoringRules Json   @default("{\"exact_score\": 3, \"correct_winner\": 1, \"wrong\": 0}") @map("scoring_rules")
+  isActive     Boolean @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  owner       User             @relation("PoolOwner", fields: [ownerId], references: [id])
+  memberships PoolMembership[]
+  picks       Pick[]
+
+  @@map("pools")
+}
+
+model PoolMembership {
+  id       Int      @id @default(autoincrement())
+  poolId   Int      @map("pool_id")
+  userId   Int      @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  pool Pool @relation(fields: [poolId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([poolId, userId])
+  @@map("pool_memberships")
+}
+
+model Match {
+  id           Int       @id @default(autoincrement())
+  teamA        String    @map("team_a") @db.VarChar(50)
+  teamB        String    @map("team_b") @db.VarChar(50)
+  teamAFlag    String?   @map("team_a_flag") @db.VarChar(10)
+  teamBFlag    String?   @map("team_b_flag") @db.VarChar(10)
+  scheduledAt  DateTime  @map("scheduled_at")
+  teamAScore   Int?      @map("team_a_score")
+  teamBScore   Int?      @map("team_b_score")
+  status       String    @default("scheduled") @db.VarChar(20)
+  matchType    String    @default("group") @map("match_type") @db.VarChar(30)
+  groupName    String?   @map("group_name") @db.VarChar(10)
+  venue        String?   @db.VarChar(100)
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  picks           Pick[]
+  aiSuggestions   AISuggestion[]
+  calendarEvents  CalendarEvent[]
+
+  @@map("matches")
+}
+
+model Pick {
+  id                     Int      @id @default(autoincrement())
+  userId                 Int      @map("user_id")
+  matchId                Int      @map("match_id")
+  poolId                 Int      @map("pool_id")
+  predictedTeamAScore    Int      @map("predicted_team_a_score")
+  predictedTeamBScore    Int      @map("predicted_team_b_score")
+  points                 Int      @default(0)
+  aiSuggested           Boolean  @default(false) @map("ai_suggested")
+  confidenceScore       Float?   @map("confidence_score")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+  pool  Pool  @relation(fields: [poolId], references: [id])
+
+  @@unique([userId, matchId, poolId])
+  @@map("picks")
+}
+
+model AISuggestion {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @map("user_id")
+  matchId               Int      @map("match_id")
+  suggestedTeamAScore   Int      @map("suggested_team_a_score")
+  suggestedTeamBScore   Int      @map("suggested_team_b_score")
+  confidence            Float
+  reasoning             String
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+
+  @@map("ai_suggestions")
+}
+
+model CalendarEvent {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  matchId      Int      @map("match_id")
+  calendarType String   @map("calendar_type") @db.VarChar(20)
+  eventId      String   @map("event_id") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+
+  @@map("calendar_events")
+}
