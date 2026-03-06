@@ -1,6 +1,5 @@
-import type { Config } from "jest";
-
-const config: Config = {
+/** @type {import('jest').Config} */
+module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   testMatch: ["**/*.spec.ts", "**/*.test.ts"],
@@ -11,7 +10,7 @@ const config: Config = {
     "!src/**/index.ts",
     "!src/**/*.d.ts"
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@/domain/(.*)$": "<rootDir>/src/domain/$1",
     "^@/application/(.*)$": "<rootDir>/src/application/$1",
@@ -19,5 +18,3 @@ const config: Config = {
     "^@/interfaces/(.*)$": "<rootDir>/src/interfaces/$1"
   }
 };
-
-export default config;

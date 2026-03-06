@@ -13,6 +13,7 @@
     "db:migrate": "prisma db push",
     "db:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "seed:validate": "tsx prisma/validate-seed.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {

@@ -11,12 +11,9 @@ A simple World Cup betting pool application where users can predict match scores
 #### 1. **Cadastro de Jogos da Copa**
 - **Complexidade**: Baixa | **Tempo**: 5min | **Impacto**: ⭐
 - Seed/script admin que popula base com jogos reais da Copa
-- Times, datas, horários, grupos e fases
+- Times, bandeira (exemplo: Brasil - "https://flagcdn.com/w80/br.png"), datas, horários, grupos e fases
 - Dados estruturados para demonstração realista
 - **Deliverable**: Script `pnpm seed` funcional
-
-### 🎯 Phase 1: Core Features (Durante Workshop)
-**⭐⭐⭐ Recomendação ALTA: Implementar AO VIVO**
 
 #### 2. **Criação e Gerenciamento de Bolões**
 - **Complexidade**: Baixa-Média | **Tempo**: 10-15min | **Impacto**: ⭐⭐
@@ -33,6 +30,9 @@ A simple World Cup betting pool application where users can predict match scores
 - Histórico de palpites do usuário
 - Edição de palpites antes do deadline
 - **Deliverable**: Sistema completo de palpites
+
+### 🎯 Phase 1: Core Features (Durante Workshop)
+**⭐⭐⭐ Recomendação ALTA: Implementar AO VIVO**
 
 #### 4. **Cálculo Automático de Pontuação**
 - **Complexidade**: Média | **Tempo**: 10-15min | **Impacto**: ⭐⭐⭐
