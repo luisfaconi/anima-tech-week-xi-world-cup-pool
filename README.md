@@ -14,7 +14,7 @@ Este é um sistema de bolão da Copa do Mundo onde usuários podem:
 ### Pré-requisitos
 - Node.js 18+
 - pnpm 8+
-- Docker & Docker Compose
+- Docker & Docker Compose (Em execução)
 
 ### Instalação Completa (1 comando)
 ```bash
@@ -26,14 +26,15 @@ pnpm setup
 # 1. Instalar dependências
 pnpm install
 
-# 2. Subir banco de dados
+# 2. Copiar variáveis de ambiente
+cp .env.example .env
+cp .env.example apps/api/.env
+
+# 3. Subir banco de dados
 pnpm db:up
 
-# 3. Aplicar migrações
+# 4. Aplicar migrações
 pnpm --filter api db:migrate
-
-# 4. Copiar variáveis de ambiente
-cp .env.example .env
 ```
 
 ### Desenvolvimento
