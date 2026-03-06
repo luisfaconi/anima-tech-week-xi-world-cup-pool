@@ -9,9 +9,14 @@ const router = createRouter({
       component: () => import('../pages/HomePage.vue'),
     },
     {
-      path: '/palpites',
-      name: 'palpites',
-      component: () => import('../pages/PalpitesPage.vue'),
+      path: '/picks',
+      name: 'picks',
+      component: () => import('../pages/PickPage.vue'),
+    },
+    {
+      path: '/pool',
+      name: 'pool',
+      component: () => import('../pages/PoolPage.vue'),
     },
   ],
 });

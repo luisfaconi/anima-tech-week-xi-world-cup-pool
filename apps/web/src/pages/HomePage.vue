@@ -48,9 +48,13 @@
         <p class="section-subtitle">Gerencie seus bolões</p>
         
         <div class="action-buttons">
-          <button class="action-btn btn-create" @click="criarBolao">
+          <button class="action-btn btn-create" @click="createPick">
             <span class="btn-icon">➕</span>
             Fazer Palpites
+          </button>
+          <button class="action-btn btn-create" @click="createPool">
+            <span class="btn-icon">➕</span>
+            Criar Bolão
           </button>
         </div>
       </div>
@@ -59,7 +63,7 @@
         <h3 class="section-title">Meus Bolões</h3>
         <p class="section-subtitle">Clique para ver detalhes</p>
         
-        <button class="bolao-card" @click="verBolao">
+        <button class="bolao-card" @click="viewPool">
           <span>Bolão da Copa 2026</span>
           <span class="badge">26 pessoas</span>
         </button>
@@ -83,11 +87,15 @@ const stats = ref({
 
 const username = ref('John Doe')
 
-const criarBolao = () => {
-  router.push('/palpites')
+const createPick = () => {
+  router.push('/picks')
 }
 
-const verBolao = () => {
+const createPool = () => {
+  router.push('/pool')
+}
+
+const viewPool = () => {
   console.log('Ver detalhes do bolão')
 }
 </script>
