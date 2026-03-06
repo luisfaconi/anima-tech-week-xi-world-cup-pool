@@ -1,13 +1,11 @@
 <template>
   <div class="palpites-page">
-    <!-- Próximos Jogos Section -->
     <section class="games-section">
       <div class="section-header">
         <h2>Próximos Jogos</h2>
         <p class="section-subtitle">Faça seus palpites diretamente aqui</p>
       </div>
 
-      <!-- Game Cards -->
       <div class="games-list">
         <!-- Game 1 - Brasil vs Canadá -->
         <div class="game-card">
@@ -54,7 +52,6 @@
           </div>
         </div>
 
-        <!-- Game 2 - México vs Costa Rica (Editing) -->
         <div class="game-card editing">
           <div class="game-header">
             <div class="group-badge">A</div>
@@ -102,7 +99,6 @@
           </div>
         </div>
 
-        <!-- Game 3 - Brasil vs Costa Rica -->
         <div class="game-card">
           <div class="game-header">
             <div class="group-badge">A</div>
@@ -141,7 +137,6 @@
           </div>
         </div>
 
-        <!-- Game 4 - México vs Canadá -->
         <div class="game-card">
           <div class="game-header">
             <div class="group-badge">A</div>
@@ -187,7 +182,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 
-// Estado dos jogos
 const games = reactive([
   {
     id: 1,
@@ -231,7 +225,6 @@ const games = reactive([
   }
 ])
 
-// Métodos
 const saveGame = (index: number) => {
   games[index].saved = true
   console.log('Palpite salvo:', games[index])
@@ -253,7 +246,6 @@ const markAsEdited = (index: number) => {
   min-height: calc(100vh - 200px);
 }
 
-/* Suggestion Card */
 .suggestion-card {
   background: white;
   border-radius: 12px;
@@ -326,7 +318,6 @@ const markAsEdited = (index: number) => {
   font-size: 0.9rem;
 }
 
-/* Games Section */
 .games-section {
   background: white;
   border-radius: 12px;
@@ -349,14 +340,12 @@ const markAsEdited = (index: number) => {
   font-size: 0.95rem;
 }
 
-/* Games List */
 .games-list {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Game Card */
 .game-card {
   border: 2px solid #e5e7eb;
   border-radius: 12px;
@@ -411,7 +400,6 @@ const markAsEdited = (index: number) => {
   padding: 0.25rem;
 }
 
-/* Game Content */
 .game-content {
   display: flex;
   align-items: center;
@@ -441,7 +429,6 @@ const markAsEdited = (index: number) => {
   color: #1a1a1a;
 }
 
-/* Score Input */
 .score-input {
   display: flex;
   align-items: center;
@@ -482,7 +469,6 @@ const markAsEdited = (index: number) => {
   font-weight: 500;
 }
 
-/* Game Status */
 .game-status {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -496,7 +482,6 @@ const markAsEdited = (index: number) => {
   color: #065f46;
 }
 
-/* Game Actions */
 .game-actions {
   margin-top: 1.5rem;
   display: flex;
@@ -539,7 +524,6 @@ const markAsEdited = (index: number) => {
   background: #f9fafb;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .game-content {
     flex-direction: column;
@@ -560,7 +544,6 @@ const markAsEdited = (index: number) => {
   }
 }
 
-/* Remove arrows from number input */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
