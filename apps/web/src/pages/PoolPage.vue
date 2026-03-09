@@ -90,8 +90,12 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit" :disabled="!isFormValid">
-          Criar Bolão
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
+
+        <button type="submit" class="btn-submit" :disabled="!isFormValid || loading">
+          {{ loading ? 'Criando...' : 'Criar Bolão' }}
         </button>
       </form>
     </div>
@@ -102,14 +106,18 @@
           <div class="modal-icon">✅</div>
           <h2 class="modal-title">Bolão Criado com Sucesso!</h2>
           <p class="modal-text">
-            Seu bolão "{{ formData.name }}" foi criado e está pronto para receber participantes.
+            Seu bolão "{{ createdPool?.name }}" foi criado e está pronto para receber participantes.
           </p>
-          <div class="modal-actions">
-            <button class="btn-modal-primary" @click="sharePool">
-              Compartilhar Link
+          <div class="invite-code-section">
+            <p class="invite-label">Código de Convite:</p>
+            <div class="invite-code">{{ createdPool?.inviteCode }}</div>
+            <button class="btn-copy" @click="copyInviteCode">
+              📋 Copiar Código
             </button>
-            <button class="btn-modal-secondary" @click="goToPool">
-              Ver Bolão
+          </div>
+          <div class="modal-actions">
+            <button class="btn-modal-primary" @click="goToHome">
+              Ver Meus Bolões
             </button>
           </div>
         </div>
@@ -119,20 +127,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePoolStore } from '../stores/poolStore'
+import { userService } from '../services/api/userService'
 
 const router = useRouter()
+const poolStore = usePoolStore()
+
+// Test user - In a real app, this would come from authentication
+const TEST_USER_EMAIL = 'joao@example.com'
+const userId = ref<number | null>(null)
+
+onMounted(async () => {
+  try {
+    const user = await userService.getUserByEmail(TEST_USER_EMAIL)
+    userId.value = user.id
+  } catch (error) {
+    console.error('Error loading user:', error)
+  }
+})
 
 const formData = ref({
   name: '',
   description: '',
   exactScore: 5,
-  goalDifference: 4,
-  correctWinner: 3
+  goalDifference: 3,
+  correctWinner: 1
 })
 
 const showSuccessModal = ref(false)
+const createdPool = ref<any>(null)
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 const isFormValid = computed(() => {
   return formData.value.name.trim() !== '' &&
@@ -145,39 +172,47 @@ const goBack = () => {
   router.push('/')
 }
 
-const createPool = () => {
-  if (!isFormValid.value) return
+const createPool = async () => {
+  if (!isFormValid.value || !userId.value) return
   
-  console.log('Criando bolão:', formData.value)
+  loading.value = true
+  error.value = null
   
-  setTimeout(() => {
+  try {
+    const pool = await poolStore.createPool({
+      name: formData.value.name,
+      description: formData.value.description || undefined,
+      ownerId: userId.value,
+      scoringRules: {
+        exact_score: formData.value.exactScore,
+        goal_difference: formData.value.goalDifference,
+        correct_winner: formData.value.correctWinner,
+        wrong: 0,
+      },
+    })
+    
+    createdPool.value = pool
     showSuccessModal.value = true
-  }, 500)
+  } catch (err: any) {
+    error.value = err.message || 'Erro ao criar bolão. Tente novamente.'
+    console.error('Error creating pool:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
 const closeModal = () => {
   showSuccessModal.value = false
 }
 
-const sharePool = () => {
-  const shareText = `Participe do meu bolão "${formData.value.name}" na Copa 2026!`
-  
-  if (navigator.share) {
-    navigator.share({
-      title: formData.value.name,
-      text: shareText,
-      url: window.location.href
-    })
-  } else {
-    navigator.clipboard.writeText(window.location.href)
-    alert('Link copiado para área de transferência!')
+const copyInviteCode = () => {
+  if (createdPool.value?.inviteCode) {
+    navigator.clipboard.writeText(createdPool.value.inviteCode)
+    alert('Código copiado para área de transferência!')
   }
-  
-  closeModal()
 }
 
-const goToPool = () => {
-  console.log('Ir para o bolão criado')
+const goToHome = () => {
   closeModal()
   router.push('/')
 }
@@ -323,6 +358,14 @@ const goToPool = () => {
   margin-bottom: 1rem;
 }
 
+.error-message {
+  padding: 0.75rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
 .btn-submit {
   width: 100%;
   padding: 0.9rem;
@@ -398,6 +441,44 @@ const goToPool = () => {
   margin-bottom: 2rem;
 }
 
+.invite-code-section {
+  background: #f0f9ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.invite-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.invite-code {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0369a1;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.btn-copy {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 2px solid #0369a1;
+  color: #0369a1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-copy:hover {
+  background: #0369a1;
+  color: white;
+}
+
 .modal-actions {
   display: flex;
   gap: 1rem;
@@ -421,24 +502,6 @@ const goToPool = () => {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.btn-modal-secondary {
-  width: 100%;
-  padding: 1rem;
-  background: white;
-  color: #374151;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-modal-secondary:hover {
-  border-color: #cbd5e1;
-  background: #f9fafb;
 }
 
 .modal-enter-active,

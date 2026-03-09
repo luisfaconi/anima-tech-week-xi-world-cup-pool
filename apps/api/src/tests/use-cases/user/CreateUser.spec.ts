@@ -1,7 +1,7 @@
-import { CreateUserUseCase } from './CreateUser';
-import { UserRepository } from '@/application/ports/UserRepository';
-import { User, CreateUserData } from '@/domain/entities/User';
-import { UserAlreadyExistsError } from '@/domain/errors/DomainError';
+import { CreateUserUseCase } from '../../../application/use-cases/user/CreateUser';
+import { UserRepository } from '../../../application/ports/user/UserRepository';
+import { User, CreateUserData } from '../../../domain/entities/user/User';
+import { UserAlreadyExistsError } from '../../../domain/errors/DomainError';
 
 // Mock repository
 const mockUserRepository: jest.Mocked<UserRepository> = {

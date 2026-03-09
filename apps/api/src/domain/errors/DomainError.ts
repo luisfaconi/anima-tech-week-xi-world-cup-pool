@@ -54,3 +54,51 @@ export class MatchAlreadyStartedError extends DomainError {
     super(`Cannot modify pick for match ${matchId} - match has already started`);
   }
 }
+
+export class PoolNotFoundError extends DomainError {
+  readonly code = 'POOL_NOT_FOUND';
+
+  constructor(poolId: number) {
+    super(`Pool with ID ${poolId} not found`);
+  }
+}
+
+export class PoolNotFoundByCodeError extends DomainError {
+  readonly code = 'POOL_NOT_FOUND';
+
+  constructor(inviteCode: string) {
+    super(`Pool with invite code ${inviteCode} not found`);
+  }
+}
+
+export class PoolInactiveError extends DomainError {
+  readonly code = 'POOL_INACTIVE';
+
+  constructor(poolId: number) {
+    super(`Pool ${poolId} is inactive and cannot accept new members or picks`);
+  }
+}
+
+export class UserAlreadyInPoolError extends DomainError {
+  readonly code = 'USER_ALREADY_IN_POOL';
+
+  constructor(userId: number, poolId: number) {
+    super(`User ${userId} is already a member of pool ${poolId}`);
+  }
+}
+
+export class UserNotPoolMemberError extends DomainError {
+  readonly code = 'USER_NOT_POOL_MEMBER';
+
+  constructor(userId: number, poolId: number) {
+    super(`User ${userId} is not a member of pool ${poolId}`);
+  }
+}
+
+export class UnauthorizedPoolActionError extends DomainError {
+  readonly code = 'UNAUTHORIZED_POOL_ACTION';
+
+  constructor(action: string) {
+    super(`Unauthorized: ${action}`);
+  }
+}

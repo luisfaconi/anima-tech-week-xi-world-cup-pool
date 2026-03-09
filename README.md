@@ -35,6 +35,9 @@ pnpm db:up
 
 # 4. Aplicar migrações
 pnpm --filter api db:migrate
+
+# 5. Popular banco com dados da Copa (IMPORTANTE!)
+pnpm --filter api seed
 ```
 
 ### Desenvolvimento
@@ -97,16 +100,30 @@ apps/web/src/
 ## 📋 Endpoints da API
 
 ```
+# Usuários
 POST   /api/users                    # Criar usuário
-GET    /api/users/:id                # Buscar usuário
+GET    /api/users/:id                # Buscar usuário por ID
+GET    /api/users?email=X            # Buscar usuário por email
 
+# Bolões
+POST   /api/pools                    # Criar bolão
+POST   /api/pools/:id/join           # Entrar em bolão
+GET    /api/pools/:id                # Detalhes do bolão
+GET    /api/pools?userId=X           # Listar bolões do usuário
+PUT    /api/pools/:id                # Atualizar bolão
+DELETE /api/pools/:id/members/:userId # Remover membro
+GET    /api/pools/:id/members        # Listar membros
+
+# Partidas
 GET    /api/matches                  # Listar partidas
 GET    /api/matches/:id              # Buscar partida
 
+# Palpites
 POST   /api/picks                    # Criar palpite
 PUT    /api/picks/:id                # Atualizar palpite
 GET    /api/picks/user/:userId       # Palpites do usuário
 
+# Ranking
 GET    /api/leaderboard              # Ranking geral
 ```
 
@@ -170,15 +187,31 @@ docker compose down -v
 
 ## 🌟 Features Implementadas
 
-- ✅ CRUD de usuários
-- ✅ CRUD de partidas
-- ✅ CRUD de palpites
-- ✅ Sistema de pontuação
-- ✅ Ranking/leaderboard
-- ✅ Testes unitários
-- ✅ Validação de dados
-- ✅ Clean Architecture
+### Phase 0: Pre-Workshop Setup
+- ✅ **Cadastro de Jogos da Copa** (Tarefa 1)
+  - 64 jogos da Copa do Mundo 2026
+  - Seed script completo com dados reais
+  - Validação de dados
+
+- ✅ **Criação e Gerenciamento de Bolões** (Tarefa 2)
+  - CRUD completo de bolões
+  - Sistema de convites por código único
+  - Gerenciamento de membros
+  - Regras de pontuação configuráveis
+  - Lookup dinâmico de usuários
+
+- ⏳ **Realização de Palpites** (Tarefa 3 - Pendente)
+  - Criar/editar palpites
+  - Validar deadline
+  - Associar palpites a bolões
+
+### Qualidade e Arquitetura
+- ✅ Clean Architecture (Domain, Application, Infrastructure, Interface)
+- ✅ Testes unitários (12 testes passando)
+- ✅ Validação de dados (Zod)
+- ✅ Tratamento de erros consistente
 - ✅ Documentação completa
+- ✅ TypeScript strict mode
 
 ## 🎓 Workshop: Spec Driven Development
 

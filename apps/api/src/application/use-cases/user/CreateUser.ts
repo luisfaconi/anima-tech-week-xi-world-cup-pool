@@ -1,6 +1,6 @@
-import { User, CreateUserData } from '@/domain/entities/User';
-import { UserRepository } from '@/application/ports/UserRepository';
-import { UserAlreadyExistsError } from '@/domain/errors/DomainError';
+import { User, CreateUserData } from '../../../domain/entities/user/User';
+import { UserRepository } from '../../ports/user/UserRepository';
+import { UserAlreadyExistsError } from '../../../domain/errors/DomainError';
 
 export class CreateUserUseCase {
   constructor(private userRepository: UserRepository) {}

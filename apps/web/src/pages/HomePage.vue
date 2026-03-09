@@ -5,7 +5,10 @@
       <p class="welcome-subtitle">Seus bolões da Copa 2026</p>
     </section>
 
-    <div class="stats-grid">
+    <div v-if="poolStore.loading" class="loading">Carregando...</div>
+    <div v-else-if="poolStore.error" class="error">{{ poolStore.error }}</div>
+
+    <div v-else class="stats-grid">
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-label">Meus Bolões</span>
@@ -63,9 +66,17 @@
         <h3 class="section-title">Meus Bolões</h3>
         <p class="section-subtitle">Clique para ver detalhes</p>
         
-        <button class="bolao-card" @click="viewPool">
-          <span>Bolão da Copa 2026</span>
-          <span class="badge">26 pessoas</span>
+        <div v-if="poolStore.pools.length === 0" class="empty-state">
+          Você ainda não participa de nenhum bolão
+        </div>
+        <button 
+          v-for="pool in poolStore.pools" 
+          :key="pool.id"
+          class="bolao-card" 
+          @click="viewPool(pool.id)"
+        >
+          <span>{{ pool.name }}</span>
+          <span class="badge">{{ pool.memberCount }} pessoas</span>
         </button>
       </div>
     </div>
@@ -73,30 +84,50 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePoolStore } from '../stores/poolStore'
+import { userService } from '../services/api/userService'
 
 const router = useRouter()
+const poolStore = usePoolStore()
 
-const stats = ref({
-  boloes: 1,
-  participantes: 26,
-  posicao: '2º',
-  iaRecursos: 5
+// Test user - In a real app, this would come from authentication
+const TEST_USER_EMAIL = 'joao@example.com'
+const userId = ref<number | null>(null)
+const username = ref('João Silva')
+
+const stats = computed(() => ({
+  boloes: poolStore.pools.length,
+  participantes: poolStore.pools.reduce((sum, pool) => sum + (pool.memberCount || 0), 0),
+}))
+
+onMounted(async () => {
+  try {
+    // Get user by email (dynamic ID)
+    const user = await userService.getUserByEmail(TEST_USER_EMAIL)
+    userId.value = user.id
+    username.value = user.name
+    
+    // Fetch pools for this user
+    await poolStore.fetchUserPools(user.id)
+  } catch (error) {
+    console.error('Error loading user:', error)
+  }
 })
-
-const username = ref('John Doe')
 
 const createPick = () => {
   router.push('/picks')
 }
 
 const createPool = () => {
-  router.push('/pool')
+  if (userId.value) {
+    router.push('/pool')
+  }
 }
 
-const viewPool = () => {
-  console.log('Ver detalhes do bolão')
+const viewPool = (poolId: number) => {
+  router.push(`/pool/${poolId}`)
 }
 </script>
 
@@ -118,6 +149,18 @@ const viewPool = () => {
 .welcome-subtitle {
   color: #666;
   font-size: 1rem;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 8px;
 }
 
 .stats-grid {
@@ -235,14 +278,11 @@ const viewPool = () => {
   background: #f0f9ff;
 }
 
-.btn-ai {
-  background: linear-gradient(135deg, #a855f7, #d946ef);
-  color: white;
-  border: none;
-}
-
-.btn-ai:hover {
-  background: linear-gradient(135deg, #9333ea, #c026d3);
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.95rem;
 }
 
 .bolao-card {
@@ -259,6 +299,7 @@ const viewPool = () => {
   font-weight: 500;
   color: #0099ff;
   transition: all 0.2s;
+  margin-bottom: 0.75rem;
 }
 
 .bolao-card:hover {

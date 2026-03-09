@@ -31,7 +31,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const username = ref('John Doe')
+const username = ref('João Silva')
 
 const goHome = () => {
   router.push('/')
