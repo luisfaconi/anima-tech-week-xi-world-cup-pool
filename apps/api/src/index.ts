@@ -21,6 +21,7 @@ import { UpdatePickUseCase } from './application/use-cases/pick/UpdatePick';
 import { GetUserPicksUseCase } from './application/use-cases/pick/GetUserPicks';
 import { DeletePickUseCase } from './application/use-cases/pick/DeletePick';
 import { ListMatchesUseCase } from './application/use-cases/match/ListMatches';
+import { UpdateMatchResult } from './application/use-cases/match/UpdateMatchResult';
 
 // Controllers
 import { PoolController } from './interfaces/http/controllers/pool/PoolController';
@@ -73,6 +74,7 @@ async function bootstrap() {
   const deletePick = new DeletePickUseCase(pickRepository, matchRepository);
   
   const listMatches = new ListMatchesUseCase(matchRepository);
+  const updateMatchResult = new UpdateMatchResult(matchRepository, pickRepository, poolRepository);
 
   // Initialize Controllers
   const poolController = new PoolController(
@@ -94,7 +96,7 @@ async function bootstrap() {
     deletePick
   );
   
-  const matchController = new MatchController(listMatches);
+  const matchController = new MatchController(listMatches, updateMatchResult);
 
   // Health check route
   fastify.get('/health', async () => {

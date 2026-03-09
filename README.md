@@ -123,6 +123,7 @@ GET    /api/pools/:id/members        # Listar membros
 # Partidas
 GET    /api/matches                  # Listar partidas
 GET    /api/matches/:id              # Buscar partida
+PUT    /api/matches/:id/result       # Atualizar resultado (admin)
 
 # Palpites
 POST   /api/picks                    # Criar palpite
@@ -216,13 +217,24 @@ docker compose down -v
   - Histórico de palpites do usuário
   - Suporte a múltiplos bolões por usuário
 
+### Phase 1: Core Features
+- ✅ **Cálculo Automático de Pontuação** (Tarefa 4)
+  - Sistema configurável de regras de pontuação por bolão
+  - Cálculo automático após resultado do jogo
+  - Suporte a múltiplas regras: placar exato, vencedor correto, erro
+  - Engine de pontuação flexível e testada
+  - Atualização em lote de todos os palpites do jogo
+  - Endpoint admin para atualizar resultados
+  - 15 testes adicionais (42 testes no total)
+
 ### Qualidade e Arquitetura
 - ✅ Clean Architecture (Domain, Application, Infrastructure, Interface)
-- ✅ Testes unitários (20 testes passando)
+- ✅ Testes unitários e integração (42 testes passando)
 - ✅ Validação de dados (Zod)
 - ✅ Tratamento de erros consistente
 - ✅ Documentação completa
 - ✅ TypeScript strict mode
+- ✅ Domain Services (ScoringService)
 
 ## 🎓 Workshop: Spec Driven Development
 

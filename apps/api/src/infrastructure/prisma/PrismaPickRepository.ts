@@ -98,6 +98,18 @@ export class PrismaPickRepository implements PickRepository {
     return this.toDomain(pick);
   }
 
+  async updatePoints(id: number, points: number): Promise<Pick> {
+    const pick = await this.prisma.pick.update({
+      where: { id },
+      data: {
+        points,
+        updatedAt: new Date(),
+      },
+    });
+
+    return this.toDomain(pick);
+  }
+
   async delete(id: number): Promise<void> {
     await this.prisma.pick.delete({
       where: { id },

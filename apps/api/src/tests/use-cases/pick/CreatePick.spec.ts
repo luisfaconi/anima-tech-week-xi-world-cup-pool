@@ -30,6 +30,7 @@ describe('CreatePickUseCase', () => {
       findByMatchId: jest.fn(),
       findByPoolId: jest.fn(),
       update: jest.fn(),
+      updatePoints: jest.fn(),
       delete: jest.fn(),
     };
 

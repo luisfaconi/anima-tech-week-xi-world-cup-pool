@@ -85,3 +85,29 @@ Após aprovar, solicitarei as próximas fases.
 Atualize o @/README.md com as novas implementações
 Atualize a doc @/docs/validation/PHASE-0-IMPLEMENTATION.md com os detalhes da implementação
 ```
+
+## Fase 1: Core Features (Durante Workshop)
+
+### TAREFA 4. Cálculo Automático de Pontuação
+
+**Objetivo**: 
+
+#### 📝 Prompt Inicial
+
+```
+Estrutura de Specs:
+@/docs/spec.md   - Guidelines para desenvolvimento com IA
+@/docs/spec.md   - Especificação técnica completa
+@/docs/api.md    - Documentação da API REST
+
+Implemente a tarefa 4. Cálculo Automático de Pontuação da Phase 1: Core Features seguindo TODAS as specs acima.
+
+Considere que os dados exibidos na tela devem ser de um usuário teste, já que a implementação de cadastro de usuário não foi implementado.
+
+Siga as especificações 100%, não se desvie do escopo da tarefa
+Execute testes para validação.
+Execute a aplicação para validar erros.
+Atualize o @/README.md com as novas implementações.
+Crie a doc @/docs/validation/PHASE-1-CORE_FEATURES.md com os detalhes da implementação.
+Após aprovar, solicitarei as próximas fases.
+```
