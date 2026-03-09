@@ -42,9 +42,15 @@ pnpm --filter api seed
 
 ### Desenvolvimento
 ```bash
-# Rodar tudo (API + Web)
+# Terminal 1: API + Web
 pnpm dev
 
+# Terminal 2: Prisma Studio
+cd apps/api && npx prisma studio
+```
+
+**Comandos Adicionais:**
+```bash
 # Apenas API
 pnpm --filter api dev
 
@@ -121,7 +127,8 @@ GET    /api/matches/:id              # Buscar partida
 # Palpites
 POST   /api/picks                    # Criar palpite
 PUT    /api/picks/:id                # Atualizar palpite
-GET    /api/picks/user/:userId       # Palpites do usuário
+GET    /api/picks/user/:userId       # Palpites do usuário (com filtro por poolId)
+DELETE /api/picks/:id                # Deletar palpite (antes do deadline)
 
 # Ranking
 GET    /api/leaderboard              # Ranking geral
@@ -200,14 +207,18 @@ docker compose down -v
   - Regras de pontuação configuráveis
   - Lookup dinâmico de usuários
 
-- ⏳ **Realização de Palpites** (Tarefa 3 - Pendente)
-  - Criar/editar palpites
-  - Validar deadline
-  - Associar palpites a bolões
+- ✅ **Realização de Palpites** (Tarefa 3)
+  - Sistema completo de palpites integrado com banco de dados
+  - Criar/editar/deletar palpites
+  - Validação de deadline (não permite após início do jogo)
+  - Associar palpites a bolões e usuários
+  - Interface intuitiva com dados reais
+  - Histórico de palpites do usuário
+  - Suporte a múltiplos bolões por usuário
 
 ### Qualidade e Arquitetura
 - ✅ Clean Architecture (Domain, Application, Infrastructure, Interface)
-- ✅ Testes unitários (12 testes passando)
+- ✅ Testes unitários (20 testes passando)
 - ✅ Validação de dados (Zod)
 - ✅ Tratamento de erros consistente
 - ✅ Documentação completa

@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client';
 // Repositories
 import { PrismaPoolRepository } from './infrastructure/prisma/pool/PrismaPoolRepository';
 import { PrismaUserRepository } from './infrastructure/prisma/user/PrismaUserRepository';
+import { PrismaPickRepository } from './infrastructure/prisma/PrismaPickRepository';
+import { PrismaMatchRepository } from './infrastructure/prisma/PrismaMatchRepository';
 
 // Use Cases
 import { CreatePool } from './application/use-cases/pool/CreatePool';
@@ -14,14 +16,23 @@ import { ListUserPools } from './application/use-cases/pool/ListUserPools';
 import { UpdatePool } from './application/use-cases/pool/UpdatePool';
 import { RemovePoolMember } from './application/use-cases/pool/RemovePoolMember';
 import { GetPoolMembers } from './application/use-cases/pool/GetPoolMembers';
+import { CreatePickUseCase } from './application/use-cases/pick/CreatePick';
+import { UpdatePickUseCase } from './application/use-cases/pick/UpdatePick';
+import { GetUserPicksUseCase } from './application/use-cases/pick/GetUserPicks';
+import { DeletePickUseCase } from './application/use-cases/pick/DeletePick';
+import { ListMatchesUseCase } from './application/use-cases/match/ListMatches';
 
 // Controllers
 import { PoolController } from './interfaces/http/controllers/pool/PoolController';
 import { UserController } from './interfaces/http/controllers/user/UserController';
+import { PickController } from './interfaces/http/controllers/PickController';
+import { MatchController } from './interfaces/http/controllers/MatchController';
 
 // Routes
 import { poolRoutes } from './interfaces/http/routes/pool/poolRoutes';
 import { userRoutes } from './interfaces/http/routes/user/userRoutes';
+import { pickRoutes } from './interfaces/http/routes/pickRoutes';
+import { matchRoutes } from './interfaces/http/routes/matchRoutes';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -44,6 +55,8 @@ async function bootstrap() {
   // Initialize Repositories
   const poolRepository = new PrismaPoolRepository(prisma);
   const userRepository = new PrismaUserRepository(prisma);
+  const pickRepository = new PrismaPickRepository(prisma);
+  const matchRepository = new PrismaMatchRepository(prisma);
 
   // Initialize Use Cases
   const createPool = new CreatePool(poolRepository, userRepository);
@@ -53,6 +66,13 @@ async function bootstrap() {
   const updatePool = new UpdatePool(poolRepository);
   const removePoolMember = new RemovePoolMember(poolRepository, userRepository);
   const getPoolMembers = new GetPoolMembers(poolRepository, userRepository);
+  
+  const createPick = new CreatePickUseCase(pickRepository, matchRepository, userRepository, poolRepository);
+  const updatePick = new UpdatePickUseCase(pickRepository, matchRepository);
+  const getUserPicks = new GetUserPicksUseCase(pickRepository, userRepository);
+  const deletePick = new DeletePickUseCase(pickRepository, matchRepository);
+  
+  const listMatches = new ListMatchesUseCase(matchRepository);
 
   // Initialize Controllers
   const poolController = new PoolController(
@@ -66,6 +86,15 @@ async function bootstrap() {
   );
   
   const userController = new UserController(userRepository);
+  
+  const pickController = new PickController(
+    createPick,
+    updatePick,
+    getUserPicks,
+    deletePick
+  );
+  
+  const matchController = new MatchController(listMatches);
 
   // Health check route
   fastify.get('/health', async () => {
@@ -89,6 +118,22 @@ async function bootstrap() {
   await fastify.register(
     async (instance) => {
       await userRoutes(instance, userController);
+    },
+    { prefix: '/api' }
+  );
+
+  // Register Pick routes
+  await fastify.register(
+    async (instance) => {
+      await pickRoutes(instance, pickController);
+    },
+    { prefix: '/api' }
+  );
+
+  // Register Match routes
+  await fastify.register(
+    async (instance) => {
+      await matchRoutes(instance, matchController);
     },
     { prefix: '/api' }
   );

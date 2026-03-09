@@ -4,177 +4,118 @@
       ← Voltar
     </button>
 
-    <section class="games-section">
+    <div v-if="loading" class="loading">
+      Carregando jogos...
+    </div>
+
+    <div v-else-if="error" class="error">
+      {{ error }}
+    </div>
+
+    <section v-else class="games-section">
       <div class="section-header">
         <h2>Próximos Jogos</h2>
         <p class="section-subtitle">Faça seus palpites diretamente aqui</p>
+        <p v-if="testUser" class="user-info">Usuário: {{ testUser.name }}</p>
+        
+        <!-- Pool Selector -->
+        <div v-if="userPools.length > 0" class="pool-selector">
+          <label for="pool-select">Bolão:</label>
+          <select
+            id="pool-select"
+            v-model="selectedPoolId"
+            @change="onPoolChange"
+            class="pool-select"
+          >
+            <option
+              v-for="pool in userPools"
+              :key="pool.id"
+              :value="pool.id"
+            >
+              {{ pool.name }}
+            </option>
+          </select>
+        </div>
       </div>
 
-      <div class="games-list">
-        <div class="game-card">
+      <div v-if="matches.length === 0" class="no-matches">
+        Nenhum jogo disponível para palpites.
+      </div>
+
+      <div v-else class="games-list">
+        <div 
+          v-for="match in matches" 
+          :key="match.id" 
+          class="game-card"
+          :class="{ editing: editingMatchId === match.id }"
+        >
           <div class="game-header">
-            <div class="group-badge">A</div>
+            <div class="group-badge">{{ match.groupName || '?' }}</div>
             <div class="game-time">
-              <span>16/06 às 16:00</span>
+              <span>{{ formatDate(match.scheduledAt) }}</span>
               <button class="btn-calendar">📅</button>
             </div>
           </div>
           
           <div class="game-content">
             <div class="team-section">
-              <img src="https://flagcdn.com/w80/br.png" alt="Brasil" class="flag">
-              <span class="team-name">Brasil</span>
+              <img 
+                :src="`https://flagcdn.com/w80/${match.teamAFlag}.png`" 
+                :alt="match.teamA" 
+                class="flag"
+                v-if="match.teamAFlag"
+              >
+              <span class="team-name">{{ match.teamA }}</span>
             </div>
             
             <div class="score-input">
               <input 
                 type="number" 
-                v-model="games[0].homeScore" 
+                v-model.number="getPickForMatch(match.id).teamAScore" 
                 min="0" 
                 class="score-field"
-                @input="markAsEdited(0)"
+                :class="{ highlighted: editingMatchId === match.id }"
+                @input="markAsEditing(match.id)"
+                :disabled="isMatchStarted(match.scheduledAt)"
               >
               <span class="separator">×</span>
               <input 
                 type="number" 
-                v-model="games[0].awayScore" 
+                v-model.number="getPickForMatch(match.id).teamBScore" 
                 min="0" 
                 class="score-field"
-                @input="markAsEdited(0)"
+                :class="{ highlighted: editingMatchId === match.id }"
+                @input="markAsEditing(match.id)"
+                :disabled="isMatchStarted(match.scheduledAt)"
               >
             </div>
             
             <div class="team-section">
-              <img src="https://flagcdn.com/w80/ca.png" alt="Canadá" class="flag">
-              <span class="team-name">Canadá</span>
+              <img 
+                :src="`https://flagcdn.com/w80/${match.teamBFlag}.png`" 
+                :alt="match.teamB" 
+                class="flag"
+                v-if="match.teamBFlag"
+              >
+              <span class="team-name">{{ match.teamB }}</span>
             </div>
           </div>
           
-          <div v-if="games[0].saved" class="game-status saved">
+          <div v-if="getPickForMatch(match.id).saved && editingMatchId !== match.id" class="game-status saved">
             ✓ Palpite registrado - clique para editar
           </div>
-        </div>
 
-        <div class="game-card editing">
-          <div class="game-header">
-            <div class="group-badge">A</div>
-            <div class="game-time">
-              <span>16/06 às 19:00</span>
-              <button class="btn-calendar">📅</button>
-            </div>
+          <div v-if="isMatchStarted(match.scheduledAt)" class="game-status locked">
+            🔒 Jogo iniciado - palpites bloqueados
           </div>
           
-          <div class="game-content">
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/mx.png" alt="México" class="flag">
-              <span class="team-name">México</span>
-            </div>
-            
-            <div class="score-input">
-              <input 
-                type="number" 
-                v-model="games[1].homeScore" 
-                min="0" 
-                class="score-field"
-              >
-              <span class="separator">×</span>
-              <input 
-                type="number" 
-                v-model="games[1].awayScore" 
-                min="0" 
-                class="score-field highlighted"
-              >
-            </div>
-            
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/cr.png" alt="Costa Rica" class="flag">
-              <span class="team-name">Costa Rica</span>
-            </div>
-          </div>
-          
-          <div class="game-actions">
-            <button class="btn-save" @click="saveGame(1)">
-              ✓ Salvar Palpite
+          <div v-if="editingMatchId === match.id" class="game-actions">
+            <button class="btn-save" @click="savePick(match.id)" :disabled="saving">
+              {{ saving ? 'Salvando...' : '✓ Salvar Palpite' }}
             </button>
-            <button class="btn-cancel" @click="cancelEdit(1)">
+            <button class="btn-cancel" @click="cancelEdit(match.id)">
               Cancelar
             </button>
-          </div>
-        </div>
-
-        <div class="game-card">
-          <div class="game-header">
-            <div class="group-badge">A</div>
-            <div class="game-time">
-              <span>21/06 às 16:00</span>
-              <button class="btn-calendar">📅</button>
-            </div>
-          </div>
-          
-          <div class="game-content">
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/br.png" alt="Brasil" class="flag">
-              <span class="team-name">Brasil</span>
-            </div>
-            
-            <div class="score-input">
-              <input 
-                type="text" 
-                v-model="games[2].homeScore" 
-                placeholder="-"
-                class="score-field"
-              >
-              <span class="separator">×</span>
-              <input 
-                type="text" 
-                v-model="games[2].awayScore" 
-                placeholder="-"
-                class="score-field"
-              >
-            </div>
-            
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/cr.png" alt="Costa Rica" class="flag">
-              <span class="team-name">Costa Rica</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="game-card">
-          <div class="game-header">
-            <div class="group-badge">A</div>
-            <div class="game-time">
-              <span>21/06 às 16:00</span>
-              <button class="btn-calendar">📅</button>
-            </div>
-          </div>
-          
-          <div class="game-content">
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/mx.png" alt="México" class="flag">
-              <span class="team-name">México</span>
-            </div>
-            
-            <div class="score-input">
-              <input 
-                type="text" 
-                v-model="games[3].homeScore" 
-                placeholder="-"
-                class="score-field"
-              >
-              <span class="separator">×</span>
-              <input 
-                type="text" 
-                v-model="games[3].awayScore" 
-                placeholder="-"
-                class="score-field"
-              >
-            </div>
-            
-            <div class="team-section">
-              <img src="https://flagcdn.com/w80/ca.png" alt="Canadá" class="flag">
-              <span class="team-name">Canadá</span>
-            </div>
           </div>
         </div>
       </div>
@@ -183,77 +124,278 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { matchService, type Match } from '../services/api/matchService'
+import { pickService, type Pick } from '../services/api/pickService'
+import { userService, type User } from '../services/api/userService'
+import { poolService, type Pool } from '../services/api/poolService'
 
 const router = useRouter()
 
-const games = reactive([
-  {
-    id: 1,
-    homeTeam: 'Brasil',
-    awayTeam: 'Canadá',
-    homeScore: 2,
-    awayScore: 1,
-    date: '16/06 às 16:00',
-    group: 'A',
-    saved: true
-  },
-  {
-    id: 2,
-    homeTeam: 'México',
-    awayTeam: 'Costa Rica',
-    homeScore: 3,
-    awayScore: 1,
-    date: '16/06 às 19:00',
-    group: 'A',
-    saved: false
-  },
-  {
-    id: 3,
-    homeTeam: 'Brasil',
-    awayTeam: 'Costa Rica',
-    homeScore: '',
-    awayScore: '',
-    date: '21/06 às 16:00',
-    group: 'A',
-    saved: false
-  },
-  {
-    id: 4,
-    homeTeam: 'México',
-    awayTeam: 'Canadá',
-    homeScore: '',
-    awayScore: '',
-    date: '21/06 às 16:00',
-    group: 'A',
-    saved: false
-  }
-])
+// Test user and pools (loaded dynamically from database)
+const testUser = ref<User | null>(null)
+const testPool = ref<Pool | null>(null)
+const userPools = ref<Pool[]>([])
+const selectedPoolId = ref<number | null>(null)
+
+const matches = ref<Match[]>([])
+const picks = ref<Pick[]>([])
+const localPicks = ref<Record<number, { teamAScore: number; teamBScore: number; saved: boolean; pickId?: number }>>({})
+const editingMatchId = ref<number | null>(null)
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
 
 const goBack = () => {
   router.push('/')
 }
 
-const saveGame = (index: number) => {
-  games[index].saved = true
-  console.log('Palpite salvo:', games[index])
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
-const cancelEdit = (index: number) => {
-  games[index].homeScore = ''
-  games[index].awayScore = ''
-  console.log('Edição cancelada')
+const isMatchStarted = (scheduledAt: string) => {
+  return new Date() >= new Date(scheduledAt)
 }
 
-const markAsEdited = (index: number) => {
-  games[index].saved = false
+const getPickForMatch = (matchId: number) => {
+  if (!localPicks.value[matchId]) {
+    localPicks.value[matchId] = {
+      teamAScore: 0,
+      teamBScore: 0,
+      saved: false
+    }
+  }
+  return localPicks.value[matchId]
 }
+
+const markAsEditing = (matchId: number) => {
+  if (!isMatchStarted(matches.value.find(m => m.id === matchId)?.scheduledAt || '')) {
+    editingMatchId.value = matchId
+  }
+}
+
+const savePick = async (matchId: number) => {
+  const pick = localPicks.value[matchId]
+  if (!pick || !testUser.value || !testPool.value) return
+
+  try {
+    saving.value = true
+    const pickData = {
+      userId: testUser.value.id,
+      matchId,
+      poolId: testPool.value.id,
+      predictedTeamAScore: pick.teamAScore,
+      predictedTeamBScore: pick.teamBScore
+    }
+
+    if (pick.pickId) {
+      // Update existing pick
+      await pickService.updatePick(pick.pickId, {
+        predictedTeamAScore: pick.teamAScore,
+        predictedTeamBScore: pick.teamBScore
+      })
+    } else {
+      // Create new pick
+      const response = await pickService.createPick(pickData)
+      if (response.success && response.data) {
+        pick.pickId = response.data.id
+      }
+    }
+
+    pick.saved = true
+    editingMatchId.value = null
+  } catch (err: any) {
+    console.error('Error saving pick:', err)
+    error.value = err.message || 'Erro ao salvar palpite'
+  } finally {
+    saving.value = false
+  }
+}
+
+const cancelEdit = (matchId: number) => {
+  // Restore original values from picks
+  const existingPick = picks.value.find(p => p.matchId === matchId)
+  if (existingPick) {
+    localPicks.value[matchId] = {
+      teamAScore: existingPick.predictedTeamAScore,
+      teamBScore: existingPick.predictedTeamBScore,
+      saved: true,
+      pickId: existingPick.id
+    }
+  } else {
+    localPicks.value[matchId] = {
+      teamAScore: 0,
+      teamBScore: 0,
+      saved: false
+    }
+  }
+  editingMatchId.value = null
+}
+
+const loadData = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+
+    // 1. Load test user by email (from seed data)
+    const TEST_USER_EMAIL = 'joao@example.com'
+    try {
+      const user = await userService.getUserByEmail(TEST_USER_EMAIL)
+      testUser.value = user
+      console.log('User loaded:', user)
+    } catch (err) {
+      console.error('Error loading user:', err)
+      error.value = 'Usuário de teste não encontrado. Execute o seed do banco de dados.'
+      return
+    }
+
+    // 2. Load user's pools
+    if (testUser.value) {
+      try {
+        const pools = await poolService.listUserPools(testUser.value.id)
+        if (pools.length === 0) {
+          error.value = 'Usuário não está em nenhum bolão. Execute o seed do banco de dados.'
+          return
+        }
+        userPools.value = pools
+        testPool.value = pools[0] // Use first pool by default
+        selectedPoolId.value = pools[0].id
+        console.log('Pools loaded:', pools.length)
+        console.log('Selected pool:', testPool.value)
+      } catch (err) {
+        console.error('Error loading pools:', err)
+        error.value = 'Erro ao carregar bolões do usuário.'
+        return
+      }
+    }
+
+    // 3. Load matches
+    const matchesResponse = await matchService.listMatches()
+    console.log('Matches response:', matchesResponse)
+    if (matchesResponse.success && matchesResponse.data) {
+      // Filter only group stage matches and limit to first 12
+      const allMatches = matchesResponse.data
+      console.log('All matches:', allMatches.length)
+      const groupMatches = allMatches.filter(m => m.matchType === 'group')
+      console.log('Group matches:', groupMatches.length)
+      matches.value = groupMatches.slice(0, 12)
+      console.log('Matches to display:', matches.value.length)
+    }
+
+    // 4. Load user's picks for this pool
+    if (testUser.value && testPool.value) {
+      const picksResponse = await pickService.getUserPicks(testUser.value.id, testPool.value.id)
+      if (picksResponse.success && picksResponse.data) {
+        picks.value = picksResponse.data
+
+        // Initialize local picks from existing picks
+        picks.value.forEach(pick => {
+          localPicks.value[pick.matchId] = {
+            teamAScore: pick.predictedTeamAScore,
+            teamBScore: pick.predictedTeamBScore,
+            saved: true,
+            pickId: pick.id
+          }
+        })
+      }
+    }
+  } catch (err: any) {
+    console.error('Error loading data:', err)
+    error.value = 'Erro ao carregar dados. Verifique se o servidor está rodando.'
+  } finally {
+    loading.value = false
+  }
+}
+
+const onPoolChange = async () => {
+  if (!selectedPoolId.value) return
+  
+  // Update selected pool
+  testPool.value = userPools.value.find(p => p.id === selectedPoolId.value) || null
+  console.log('Pool changed to:', testPool.value)
+  
+  // Reload picks for new pool
+  if (testUser.value && testPool.value) {
+    try {
+      loading.value = true
+      const picksResponse = await pickService.getUserPicks(testUser.value.id, testPool.value.id)
+      if (picksResponse.success && picksResponse.data) {
+        picks.value = picksResponse.data
+        
+        // Reset local picks
+        localPicks.value = {}
+        
+        // Initialize local picks from existing picks
+        picks.value.forEach(pick => {
+          localPicks.value[pick.matchId] = {
+            teamAScore: pick.predictedTeamAScore,
+            teamBScore: pick.predictedTeamBScore,
+            saved: true,
+            pickId: pick.id
+          }
+        })
+      }
+    } catch (err: any) {
+      console.error('Error loading picks for new pool:', err)
+      error.value = 'Erro ao carregar palpites do bolão selecionado.'
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
 .pick-page {
   min-height: calc(100vh - 200px);
+}
+
+.pool-selector {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.pool-selector label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.pool-select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  background-color: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.pool-select:hover {
+  border-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.pool-select:focus {
+  outline: none;
+  border-color: #2980b9;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .btn-back {
@@ -278,76 +420,16 @@ const markAsEdited = (index: number) => {
   transform: translateX(-2px);
 }
 
-.suggestion-card {
-  background: white;
-  border-radius: 12px;
+.loading, .error {
+  text-align: center;
   padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 1.1rem;
 }
 
-.match-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.team {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-}
-
-.flag-small {
-  width: 32px;
-  height: 24px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.vs {
-  color: #888;
-  font-size: 0.9rem;
-}
-
-.confidence-badge {
-  position: absolute;
-  right: 0;
-  background: #ede9fe;
-  color: #7c3aed;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.suggestion-result {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.suggestion-title {
-  font-size: 1.8rem;
-  background: linear-gradient(135deg, #a855f7, #d946ef);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-}
-
-.ai-info {
-  background: #fef3c7;
-  color: #92400e;
-  padding: 1rem;
+.error {
+  color: #dc2626;
+  background: #fee2e2;
   border-radius: 8px;
-  text-align: center;
-  font-size: 0.9rem;
 }
 
 .games-section {
@@ -370,6 +452,13 @@ const markAsEdited = (index: number) => {
 .section-subtitle {
   color: #888;
   font-size: 0.9rem;
+}
+
+.user-info {
+  color: #3b82f6;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
 }
 
 .games-list {
@@ -491,8 +580,10 @@ const markAsEdited = (index: number) => {
   background: #eff6ff;
 }
 
-.score-field::placeholder {
-  color: #cbd5e1;
+.score-field:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .separator {
@@ -514,6 +605,11 @@ const markAsEdited = (index: number) => {
   color: #065f46;
 }
 
+.game-status.locked {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .game-actions {
   margin-top: 1rem;
   display: flex;
@@ -533,10 +629,15 @@ const markAsEdited = (index: number) => {
   transition: all 0.2s;
 }
 
-.btn-save:hover {
+.btn-save:hover:not(:disabled) {
   background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-cancel {
@@ -560,19 +661,6 @@ const markAsEdited = (index: number) => {
   .game-content {
     flex-direction: column;
     gap: 1rem;
-  }
-  
-  .match-preview {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .confidence-badge {
-    position: static;
-  }
-  
-  .game-actions {
-    flex-direction: column;
   }
 }
 

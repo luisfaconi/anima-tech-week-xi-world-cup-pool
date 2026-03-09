@@ -4,10 +4,15 @@ export interface Match {
   id: number;
   teamA: string;
   teamB: string;
+  teamAFlag?: string;
+  teamBFlag?: string;
   scheduledAt: Date;
   teamAScore?: number;
   teamBScore?: number;
   status: MatchStatus;
+  matchType?: string;
+  groupName?: string;
+  venue?: string;
   createdAt: Date;
 }
 

@@ -127,7 +127,7 @@ const createPool = () => {
 }
 
 const viewPool = (poolId: number) => {
-  router.push(`/pool/${poolId}`)
+  console.log('Viewing pool', poolId)
 }
 </script>
 

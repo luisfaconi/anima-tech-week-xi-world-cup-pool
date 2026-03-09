@@ -5,68 +5,68 @@ const prisma = new PrismaClient();
 // World Cup 2026 Sample Data - Realistic match schedule
 const WORLD_CUP_MATCHES = [
   // Group Stage - Group A
-  { teamA: 'Canada', teamB: 'Mexico', teamAFlag: 'ca', teamBFlag: 'mx', group: 'A', date: '2026-06-11T20:00:00Z', venue: 'BMO Field, Toronto' },
-  { teamA: 'USA', teamB: 'Morocco', teamAFlag: 'us', teamBFlag: 'ma', group: 'A', date: '2026-06-12T17:00:00Z', venue: 'MetLife Stadium, New York' },
-  { teamA: 'Canada', teamB: 'Morocco', teamAFlag: 'ca', teamBFlag: 'ma', group: 'A', date: '2026-06-16T14:00:00Z', venue: 'BC Place, Vancouver' },
-  { teamA: 'USA', teamB: 'Mexico', teamAFlag: 'us', teamBFlag: 'mx', group: 'A', date: '2026-06-16T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
-  { teamA: 'Mexico', teamB: 'Morocco', teamAFlag: 'mx', teamBFlag: 'ma', group: 'A', date: '2026-06-20T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
-  { teamA: 'USA', teamB: 'Canada', teamAFlag: 'us', teamBFlag: 'ca', group: 'A', date: '2026-06-20T20:00:00Z', venue: 'AT&T Stadium, Dallas' },
+  { teamA: 'Canadá', teamB: 'México', teamAFlag: 'ca', teamBFlag: 'mx', group: 'A', date: '2026-06-11T20:00:00Z', venue: 'BMO Field, Toronto' },
+  { teamA: 'EUA', teamB: 'Marrocos', teamAFlag: 'us', teamBFlag: 'ma', group: 'A', date: '2026-06-12T17:00:00Z', venue: 'MetLife Stadium, New York' },
+  { teamA: 'Canadá', teamB: 'Marrocos', teamAFlag: 'ca', teamBFlag: 'ma', group: 'A', date: '2026-06-16T14:00:00Z', venue: 'BC Place, Vancouver' },
+  { teamA: 'EUA', teamB: 'México', teamAFlag: 'us', teamBFlag: 'mx', group: 'A', date: '2026-06-16T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
+  { teamA: 'México', teamB: 'Marrocos', teamAFlag: 'mx', teamBFlag: 'ma', group: 'A', date: '2026-06-20T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
+  { teamA: 'EUA', teamB: 'Canadá', teamAFlag: 'us', teamBFlag: 'ca', group: 'A', date: '2026-06-20T20:00:00Z', venue: 'AT&T Stadium, Dallas' },
 
   // Group Stage - Group B
-  { teamA: 'Brazil', teamB: 'Serbia', teamAFlag: 'br', teamBFlag: 'rs', group: 'B', date: '2026-06-13T17:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
-  { teamA: 'Spain', teamB: 'Japan', teamAFlag: 'es', teamBFlag: 'jp', group: 'B', date: '2026-06-13T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
-  { teamA: 'Brazil', teamB: 'Japan', teamAFlag: 'br', teamBFlag: 'jp', group: 'B', date: '2026-06-17T17:00:00Z', venue: 'Gillette Stadium, Boston' },
-  { teamA: 'Serbia', teamB: 'Spain', teamAFlag: 'rs', teamBFlag: 'es', group: 'B', date: '2026-06-17T20:00:00Z', venue: 'Lincoln Financial Field, Philadelphia' },
-  { teamA: 'Japan', teamB: 'Serbia', teamAFlag: 'jp', teamBFlag: 'rs', group: 'B', date: '2026-06-21T14:00:00Z', venue: 'Lumen Field, Seattle' },
-  { teamA: 'Spain', teamB: 'Brazil', teamAFlag: 'es', teamBFlag: 'br', group: 'B', date: '2026-06-21T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
+  { teamA: 'Brasil', teamB: 'Sérvia', teamAFlag: 'br', teamBFlag: 'rs', group: 'B', date: '2026-06-13T17:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
+  { teamA: 'Espanha', teamB: 'Japão', teamAFlag: 'es', teamBFlag: 'jp', group: 'B', date: '2026-06-13T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Brasil', teamB: 'Japão', teamAFlag: 'br', teamBFlag: 'jp', group: 'B', date: '2026-06-17T17:00:00Z', venue: 'Gillette Stadium, Boston' },
+  { teamA: 'Sérvia', teamB: 'Espanha', teamAFlag: 'rs', teamBFlag: 'es', group: 'B', date: '2026-06-17T20:00:00Z', venue: 'Lincoln Financial Field, Philadelphia' },
+  { teamA: 'Japão', teamB: 'Sérvia', teamAFlag: 'jp', teamBFlag: 'rs', group: 'B', date: '2026-06-21T14:00:00Z', venue: 'Lumen Field, Seattle' },
+  { teamA: 'Espanha', teamB: 'Brasil', teamAFlag: 'es', teamBFlag: 'br', group: 'B', date: '2026-06-21T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
 
   // Group Stage - Group C
-  { teamA: 'France', teamB: 'Denmark', teamAFlag: 'fr', teamBFlag: 'dk', group: 'C', date: '2026-06-14T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
-  { teamA: 'England', teamB: 'South Korea', teamAFlag: 'gb-eng', teamBFlag: 'kr', group: 'C', date: '2026-06-14T17:00:00Z', venue: 'Lumen Field, Seattle' },
-  { teamA: 'France', teamB: 'South Korea', teamAFlag: 'fr', teamBFlag: 'kr', group: 'C', date: '2026-06-18T14:00:00Z', venue: 'Soldier Field, Chicago' },
-  { teamA: 'Denmark', teamB: 'England', teamAFlag: 'dk', teamBFlag: 'gb-eng', group: 'C', date: '2026-06-18T17:00:00Z', venue: 'AT&T Stadium, Dallas' },
-  { teamA: 'South Korea', teamB: 'Denmark', teamAFlag: 'kr', teamBFlag: 'dk', group: 'C', date: '2026-06-22T14:00:00Z', venue: 'Hard Rock Stadium, Miami' },
-  { teamA: 'England', teamB: 'France', teamAFlag: 'gb-eng', teamBFlag: 'fr', group: 'C', date: '2026-06-22T20:00:00Z', venue: 'MetLife Stadium, New York' },
+  { teamA: 'França', teamB: 'Dinamarca', teamAFlag: 'fr', teamBFlag: 'dk', group: 'C', date: '2026-06-14T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
+  { teamA: 'Inglaterra', teamB: 'Coreia do Sul', teamAFlag: 'gb-eng', teamBFlag: 'kr', group: 'C', date: '2026-06-14T17:00:00Z', venue: 'Lumen Field, Seattle' },
+  { teamA: 'França', teamB: 'Coreia do Sul', teamAFlag: 'fr', teamBFlag: 'kr', group: 'C', date: '2026-06-18T14:00:00Z', venue: 'Soldier Field, Chicago' },
+  { teamA: 'Dinamarca', teamB: 'Inglaterra', teamAFlag: 'dk', teamBFlag: 'gb-eng', group: 'C', date: '2026-06-18T17:00:00Z', venue: 'AT&T Stadium, Dallas' },
+  { teamA: 'Coreia do Sul', teamB: 'Dinamarca', teamAFlag: 'kr', teamBFlag: 'dk', group: 'C', date: '2026-06-22T14:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Inglaterra', teamB: 'França', teamAFlag: 'gb-eng', teamBFlag: 'fr', group: 'C', date: '2026-06-22T20:00:00Z', venue: 'MetLife Stadium, New York' },
 
   // Group Stage - Group D
-  { teamA: 'Argentina', teamB: 'Croatia', teamAFlag: 'ar', teamBFlag: 'hr', group: 'D', date: '2026-06-15T14:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
-  { teamA: 'Germany', teamB: 'Poland', teamAFlag: 'de', teamBFlag: 'pl', group: 'D', date: '2026-06-15T17:00:00Z', venue: 'Gillette Stadium, Boston' },
-  { teamA: 'Argentina', teamB: 'Poland', teamAFlag: 'ar', teamBFlag: 'pl', group: 'D', date: '2026-06-19T14:00:00Z', venue: 'Hard Rock Stadium, Miami' },
-  { teamA: 'Croatia', teamB: 'Germany', teamAFlag: 'hr', teamBFlag: 'de', group: 'D', date: '2026-06-19T17:00:00Z', venue: 'Soldier Field, Chicago' },
-  { teamA: 'Poland', teamB: 'Croatia', teamAFlag: 'pl', teamBFlag: 'hr', group: 'D', date: '2026-06-23T14:00:00Z', venue: 'AT&T Stadium, Dallas' },
-  { teamA: 'Germany', teamB: 'Argentina', teamAFlag: 'de', teamBFlag: 'ar', group: 'D', date: '2026-06-23T20:00:00Z', venue: 'MetLife Stadium, New York' },
+  { teamA: 'Argentina', teamB: 'Croácia', teamAFlag: 'ar', teamBFlag: 'hr', group: 'D', date: '2026-06-15T14:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
+  { teamA: 'Alemanha', teamB: 'Polônia', teamAFlag: 'de', teamBFlag: 'pl', group: 'D', date: '2026-06-15T17:00:00Z', venue: 'Gillette Stadium, Boston' },
+  { teamA: 'Argentina', teamB: 'Polônia', teamAFlag: 'ar', teamBFlag: 'pl', group: 'D', date: '2026-06-19T14:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Croácia', teamB: 'Alemanha', teamAFlag: 'hr', teamBFlag: 'de', group: 'D', date: '2026-06-19T17:00:00Z', venue: 'Soldier Field, Chicago' },
+  { teamA: 'Polônia', teamB: 'Croácia', teamAFlag: 'pl', teamBFlag: 'hr', group: 'D', date: '2026-06-23T14:00:00Z', venue: 'AT&T Stadium, Dallas' },
+  { teamA: 'Alemanha', teamB: 'Argentina', teamAFlag: 'de', teamBFlag: 'ar', group: 'D', date: '2026-06-23T20:00:00Z', venue: 'MetLife Stadium, New York' },
 
   // Group Stage - Group E
-  { teamA: 'Portugal', teamB: 'Uruguay', teamAFlag: 'pt', teamBFlag: 'uy', group: 'E', date: '2026-06-12T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
-  { teamA: 'Netherlands', teamB: 'Switzerland', teamAFlag: 'nl', teamBFlag: 'ch', group: 'E', date: '2026-06-12T20:00:00Z', venue: 'Lumen Field, Seattle' },
-  { teamA: 'Portugal', teamB: 'Switzerland', teamAFlag: 'pt', teamBFlag: 'ch', group: 'E', date: '2026-06-16T17:00:00Z', venue: 'Hard Rock Stadium, Miami' },
-  { teamA: 'Uruguay', teamB: 'Netherlands', teamAFlag: 'uy', teamBFlag: 'nl', group: 'E', date: '2026-06-16T20:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
-  { teamA: 'Switzerland', teamB: 'Uruguay', teamAFlag: 'ch', teamBFlag: 'uy', group: 'E', date: '2026-06-20T17:00:00Z', venue: 'Gillette Stadium, Boston' },
-  { teamA: 'Netherlands', teamB: 'Portugal', teamAFlag: 'nl', teamBFlag: 'pt', group: 'E', date: '2026-06-20T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
+  { teamA: 'Portugal', teamB: 'Uruguai', teamAFlag: 'pt', teamBFlag: 'uy', group: 'E', date: '2026-06-12T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
+  { teamA: 'Holanda', teamB: 'Suíça', teamAFlag: 'nl', teamBFlag: 'ch', group: 'E', date: '2026-06-12T20:00:00Z', venue: 'Lumen Field, Seattle' },
+  { teamA: 'Portugal', teamB: 'Suíça', teamAFlag: 'pt', teamBFlag: 'ch', group: 'E', date: '2026-06-16T17:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Uruguai', teamB: 'Holanda', teamAFlag: 'uy', teamBFlag: 'nl', group: 'E', date: '2026-06-16T20:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
+  { teamA: 'Suíça', teamB: 'Uruguai', teamAFlag: 'ch', teamBFlag: 'uy', group: 'E', date: '2026-06-20T17:00:00Z', venue: 'Gillette Stadium, Boston' },
+  { teamA: 'Holanda', teamB: 'Portugal', teamAFlag: 'nl', teamBFlag: 'pt', group: 'E', date: '2026-06-20T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
 
   // Group Stage - Group F
-  { teamA: 'Belgium', teamB: 'Colombia', teamAFlag: 'be', teamBFlag: 'co', group: 'F', date: '2026-06-13T14:00:00Z', venue: 'AT&T Stadium, Dallas' },
-  { teamA: 'Italy', teamB: 'Ecuador', teamAFlag: 'it', teamBFlag: 'ec', group: 'F', date: '2026-06-13T17:00:00Z', venue: 'Soldier Field, Chicago' },
-  { teamA: 'Belgium', teamB: 'Ecuador', teamAFlag: 'be', teamBFlag: 'ec', group: 'F', date: '2026-06-17T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
-  { teamA: 'Colombia', teamB: 'Italy', teamAFlag: 'co', teamBFlag: 'it', group: 'F', date: '2026-06-17T17:00:00Z', venue: 'Lumen Field, Seattle' },
-  { teamA: 'Ecuador', teamB: 'Colombia', teamAFlag: 'ec', teamBFlag: 'co', group: 'F', date: '2026-06-21T17:00:00Z', venue: 'MetLife Stadium, New York' },
-  { teamA: 'Italy', teamB: 'Belgium', teamAFlag: 'it', teamBFlag: 'be', group: 'F', date: '2026-06-21T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Bélgica', teamB: 'Colômbia', teamAFlag: 'be', teamBFlag: 'co', group: 'F', date: '2026-06-13T14:00:00Z', venue: 'AT&T Stadium, Dallas' },
+  { teamA: 'Itália', teamB: 'Equador', teamAFlag: 'it', teamBFlag: 'ec', group: 'F', date: '2026-06-13T17:00:00Z', venue: 'Soldier Field, Chicago' },
+  { teamA: 'Bélgica', teamB: 'Equador', teamAFlag: 'be', teamBFlag: 'ec', group: 'F', date: '2026-06-17T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
+  { teamA: 'Colômbia', teamB: 'Itália', teamAFlag: 'co', teamBFlag: 'it', group: 'F', date: '2026-06-17T17:00:00Z', venue: 'Lumen Field, Seattle' },
+  { teamA: 'Equador', teamB: 'Colômbia', teamAFlag: 'ec', teamBFlag: 'co', group: 'F', date: '2026-06-21T17:00:00Z', venue: 'MetLife Stadium, New York' },
+  { teamA: 'Itália', teamB: 'Bélgica', teamAFlag: 'it', teamBFlag: 'be', group: 'F', date: '2026-06-21T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
 
   // Group Stage - Group G
-  { teamA: 'Senegal', teamB: 'Australia', teamAFlag: 'sn', teamBFlag: 'au', group: 'G', date: '2026-06-14T20:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
-  { teamA: 'Sweden', teamB: 'Nigeria', teamAFlag: 'se', teamBFlag: 'ng', group: 'G', date: '2026-06-15T14:00:00Z', venue: 'Gillette Stadium, Boston' },
-  { teamA: 'Senegal', teamB: 'Nigeria', teamAFlag: 'sn', teamBFlag: 'ng', group: 'G', date: '2026-06-18T20:00:00Z', venue: 'AT&T Stadium, Dallas' },
-  { teamA: 'Australia', teamB: 'Sweden', teamAFlag: 'au', teamBFlag: 'se', group: 'G', date: '2026-06-19T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
-  { teamA: 'Nigeria', teamB: 'Australia', teamAFlag: 'ng', teamBFlag: 'au', group: 'G', date: '2026-06-22T17:00:00Z', venue: 'Lumen Field, Seattle' },
-  { teamA: 'Sweden', teamB: 'Senegal', teamAFlag: 'se', teamBFlag: 'sn', group: 'G', date: '2026-06-22T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
+  { teamA: 'Senegal', teamB: 'Austrália', teamAFlag: 'sn', teamBFlag: 'au', group: 'G', date: '2026-06-14T20:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
+  { teamA: 'Suécia', teamB: 'Nigéria', teamAFlag: 'se', teamBFlag: 'ng', group: 'G', date: '2026-06-15T14:00:00Z', venue: 'Gillette Stadium, Boston' },
+  { teamA: 'Senegal', teamB: 'Nigéria', teamAFlag: 'sn', teamBFlag: 'ng', group: 'G', date: '2026-06-18T20:00:00Z', venue: 'AT&T Stadium, Dallas' },
+  { teamA: 'Austrália', teamB: 'Suécia', teamAFlag: 'au', teamBFlag: 'se', group: 'G', date: '2026-06-19T14:00:00Z', venue: 'Arrowhead Stadium, Kansas City' },
+  { teamA: 'Nigéria', teamB: 'Austrália', teamAFlag: 'ng', teamBFlag: 'au', group: 'G', date: '2026-06-22T17:00:00Z', venue: 'Lumen Field, Seattle' },
+  { teamA: 'Suécia', teamB: 'Senegal', teamAFlag: 'se', teamBFlag: 'sn', group: 'G', date: '2026-06-22T20:00:00Z', venue: 'SoFi Stadium, Los Angeles' },
 
   // Group Stage - Group H
-  { teamA: 'Iran', teamB: 'Costa Rica', teamAFlag: 'ir', teamBFlag: 'cr', group: 'H', date: '2026-06-15T17:00:00Z', venue: 'Hard Rock Stadium, Miami' },
-  { teamA: 'Wales', teamB: 'Egypt', teamAFlag: 'gb-wls', teamBFlag: 'eg', group: 'H', date: '2026-06-15T20:00:00Z', venue: 'Soldier Field, Chicago' },
-  { teamA: 'Iran', teamB: 'Egypt', teamAFlag: 'ir', teamBFlag: 'eg', group: 'H', date: '2026-06-19T17:00:00Z', venue: 'MetLife Stadium, New York' },
-  { teamA: 'Costa Rica', teamB: 'Wales', teamAFlag: 'cr', teamBFlag: 'gb-wls', group: 'H', date: '2026-06-19T20:00:00Z', venue: 'Gillette Stadium, Boston' },
-  { teamA: 'Egypt', teamB: 'Costa Rica', teamAFlag: 'eg', teamBFlag: 'cr', group: 'H', date: '2026-06-23T17:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
-  { teamA: 'Wales', teamB: 'Iran', teamAFlag: 'gb-wls', teamBFlag: 'ir', group: 'H', date: '2026-06-23T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'Irã', teamB: 'Costa Rica', teamAFlag: 'ir', teamBFlag: 'cr', group: 'H', date: '2026-06-15T17:00:00Z', venue: 'Hard Rock Stadium, Miami' },
+  { teamA: 'País de Gales', teamB: 'Egito', teamAFlag: 'gb-wls', teamBFlag: 'eg', group: 'H', date: '2026-06-15T20:00:00Z', venue: 'Soldier Field, Chicago' },
+  { teamA: 'Irã', teamB: 'Egito', teamAFlag: 'ir', teamBFlag: 'eg', group: 'H', date: '2026-06-19T17:00:00Z', venue: 'MetLife Stadium, New York' },
+  { teamA: 'Costa Rica', teamB: 'País de Gales', teamAFlag: 'cr', teamBFlag: 'gb-wls', group: 'H', date: '2026-06-19T20:00:00Z', venue: 'Gillette Stadium, Boston' },
+  { teamA: 'Egito', teamB: 'Costa Rica', teamAFlag: 'eg', teamBFlag: 'cr', group: 'H', date: '2026-06-23T17:00:00Z', venue: 'Mercedes-Benz Stadium, Atlanta' },
+  { teamA: 'País de Gales', teamB: 'Irã', teamAFlag: 'gb-wls', teamBFlag: 'ir', group: 'H', date: '2026-06-23T20:00:00Z', venue: 'Hard Rock Stadium, Miami' },
 
   // Round of 16
   { teamA: 'TBD', teamB: 'TBD', teamAFlag: null, teamBFlag: null, group: null, date: '2026-06-27T17:00:00Z', venue: 'MetLife Stadium, New York', type: 'round_16' },
@@ -170,7 +170,7 @@ async function main() {
     }),
     prisma.pool.create({
       data: {
-        name: 'Escritório Tech',
+        name: 'Copa Tech',
         description: 'Bolão da galera da empresa',
         inviteCode: generateInviteCode(),
         ownerId: users[1].id,
@@ -183,7 +183,7 @@ async function main() {
     }),
     prisma.pool.create({
       data: {
-        name: 'Família Mundial',
+        name: 'Hexa 2026',
         description: 'Competição familiar da Copa',
         inviteCode: generateInviteCode(),
         ownerId: users[2].id
