@@ -18,7 +18,6 @@
         <p class="section-subtitle">Faça seus palpites diretamente aqui</p>
         <p v-if="testUser" class="user-info">Usuário: {{ testUser.name }}</p>
         
-        <!-- Pool Selector -->
         <div v-if="userPools.length > 0" class="pool-selector">
           <label for="pool-select">Bolão:</label>
           <select
@@ -38,17 +37,82 @@
         </div>
       </div>
 
-      <div v-if="matches.length === 0" class="no-matches">
+      <div v-if="finishedMatches.length > 0" class="finished-section">
+        <h3 class="subsection-title">Jogos Finalizados</h3>
+        <div class="games-list">
+          <div
+            v-for="match in finishedMatches"
+            :key="match.id"
+            class="game-card finished"
+          >
+            <div class="game-header">
+              <div class="group-badge">{{ match.groupName || '?' }}</div>
+              <div class="game-time">
+                <span>{{ formatDate(match.scheduledAt) }}</span>
+                <span class="finished-badge">✓ Finalizado</span>
+              </div>
+            </div>
+            
+            <div class="game-content">
+              <div class="team-section">
+                <img
+                  :src="`https://flagcdn.com/w80/${match.teamAFlag}.png`"
+                  :alt="match.teamA"
+                  class="flag"
+                  v-if="match.teamAFlag"
+                >
+                <span class="team-name">{{ match.teamA }}</span>
+              </div>
+              
+              <div class="score-display">
+                <div class="final-score">
+                  <span class="score-label">Placar Final</span>
+                  <div class="score-values">
+                    <span class="score-number">{{ match.teamAScore ?? '-' }}</span>
+                    <span class="separator">×</span>
+                    <span class="score-number">{{ match.teamBScore ?? '-' }}</span>
+                  </div>
+                </div>
+                <div class="pick-score" v-if="getPickForMatch(match.id).saved">
+                  <span class="score-label">Seu Palpite</span>
+                  <div class="score-values">
+                    <span class="score-number pick">{{ getPickForMatch(match.id).teamAScore }}</span>
+                    <span class="separator">×</span>
+                    <span class="score-number pick">{{ getPickForMatch(match.id).teamBScore }}</span>
+                  </div>
+                </div>
+                <div class="no-pick" v-else>
+                  <span class="no-pick-text">Sem palpite</span>
+                </div>
+              </div>
+              
+              <div class="team-section">
+                <img
+                  :src="`https://flagcdn.com/w80/${match.teamBFlag}.png`"
+                  :alt="match.teamB"
+                  class="flag"
+                  v-if="match.teamBFlag"
+                >
+                <span class="team-name">{{ match.teamB }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="upcomingMatches.length === 0 && finishedMatches.length === 0" class="no-matches">
         Nenhum jogo disponível para palpites.
       </div>
 
-      <div v-else class="games-list">
-        <div 
-          v-for="match in matches" 
-          :key="match.id" 
-          class="game-card"
-          :class="{ editing: editingMatchId === match.id }"
-        >
+      <div v-if="upcomingMatches.length > 0" class="upcoming-section">
+        <h3 class="subsection-title">Próximos Jogos</h3>
+        <div class="games-list">
+          <div
+            v-for="match in upcomingMatches"
+            :key="match.id"
+            class="game-card"
+            :class="{ editing: editingMatchId === match.id }"
+          >
           <div class="game-header">
             <div class="group-badge">{{ match.groupName || '?' }}</div>
             <div class="game-time">
@@ -117,6 +181,7 @@
               Cancelar
             </button>
           </div>
+          </div>
         </div>
       </div>
     </section>
@@ -124,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { matchService, type Match } from '../services/api/matchService'
 import { pickService, type Pick } from '../services/api/pickService'
@@ -146,6 +211,15 @@ const editingMatchId = ref<number | null>(null)
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
+
+// Computed properties para separar jogos finalizados e futuros
+const finishedMatches = computed(() => {
+  return matches.value.filter(match => match.status === 'finished')
+})
+
+const upcomingMatches = computed(() => {
+  return matches.value.filter(match => match.status !== 'finished')
+})
 
 const goBack = () => {
   router.push('/')
@@ -526,6 +600,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .team-section {
@@ -657,10 +732,148 @@ onMounted(() => {
   background: #f9fafb;
 }
 
+/* Seções de jogos */
+.finished-section,
+.upcoming-section {
+  margin-bottom: 2rem;
+}
+
+.subsection-title {
+  font-size: 1.2rem;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.no-matches {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+/* Estilos para jogos finalizados */
+.game-card.finished {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  padding: 0.8rem;
+}
+
+.game-card.finished:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.game-card.finished .group-badge {
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+}
+
+.game-card.finished .flag {
+  width: 40px;
+  height: 30px;
+}
+
+.game-card.finished .team-name {
+  font-size: 0.9rem;
+}
+
+.finished-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+/* Score display para jogos finalizados */
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+.final-score,
+.pick-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.score-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.final-score .score-label {
+  color: #059669;
+}
+
+.pick-score .score-label {
+  color: #3b82f6;
+}
+
+.score-values {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-number {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: #10b981;
+  color: white;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.score-number.pick {
+  background: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  font-size: 1rem;
+}
+
+.no-pick {
+  padding: 0.5rem 1rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  margin-top: 0.3rem;
+}
+
+.no-pick-text {
+  color: #991b1b;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .game-content {
     flex-direction: column;
     gap: 1rem;
+  }
+  
+  .score-display {
+    min-width: auto;
+    width: 100%;
   }
 }
 
