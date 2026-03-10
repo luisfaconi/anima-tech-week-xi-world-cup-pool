@@ -18,6 +18,11 @@ const router = createRouter({
       name: 'pool',
       component: () => import('../pages/PoolPage.vue'),
     },
+    {
+      path: '/ranking',
+      name: 'ranking',
+      component: () => import('../pages/RankingPage.vue'),
+    },
   ],
 });
 

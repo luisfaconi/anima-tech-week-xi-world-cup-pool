@@ -102,7 +102,7 @@ export class PoolController {
   async getMembers(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { id } = request.params as any;
-      const members = await this.getPoolMembers.execute(id);
+      const members = await this.getPoolMembers.execute(Number(id));
       return reply.send({
         success: true,
         data: members,

@@ -27,7 +27,7 @@
         <div class="stat-description">pessoas competindo</div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card clickable" @click="goToRanking">
         <div class="stat-header">
           <span class="stat-label">Posição Média</span>
           <span class="stat-icon">📊</span>
@@ -129,6 +129,10 @@ const createPool = () => {
 const viewPool = (poolId: number) => {
   console.log('Viewing pool', poolId)
 }
+
+const goToRanking = () => {
+  router.push('/ranking')
+}
 </script>
 
 <style scoped>
@@ -181,6 +185,15 @@ const viewPool = (poolId: number) => {
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 
 .stat-card.purple {
