@@ -107,41 +107,7 @@
 
         <div class="tab-content">
           <div v-show="activeTab === 'ranking'" class="ranking-section">
-            <div class="section-header">
-              <h2 class="section-title">Classificação</h2>
-              <p class="section-subtitle">Ranking em tempo real</p>
-            </div>
-
-            <div class="ranking-list">
-              <div 
-                v-for="(player, index) in players" 
-                :key="player.id"
-                class="ranking-item"
-                :class="{ highlight: player.isCurrentUser }"
-              >
-                <div class="ranking-position">
-                  <span class="position-number">{{ index + 1 }}º</span>
-                  <span class="position-medal" v-if="index < 3">
-                    {{ getMedal(index) }}
-                  </span>
-                </div>
-
-                <div class="player-info">
-                  <div class="player-avatar">
-                    {{ getInitials(player.name) }}
-                  </div>
-                  <div class="player-details">
-                    <span class="player-name">{{ player.name }}</span>
-                    <span class="player-stats">{{ player.correctPredictions }} acertos • {{ player.gamesPlayed }} palpites</span>
-                  </div>
-                </div>
-
-                <div class="player-points">
-                  <span class="points-value">{{ player.points }}</span>
-                  <span class="points-label">pontos</span>
-                </div>
-              </div>
-            </div>
+            <p class="empty-state">🏅 Seção de ranking em desenvolvimento</p>
           </div>
 
           <div v-show="activeTab === 'games'" class="games-section">
