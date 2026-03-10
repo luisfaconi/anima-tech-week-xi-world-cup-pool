@@ -10,8 +10,8 @@ Este documento registra os prompts utilizados no desenvolvimento do projeto Worl
    - [Tarefa 1: Cadastro de Jogos da Copa](#tarefa-1---cadastro-de-jogos-da-copa)
    - [Tarefa 2: Criação e Gerenciamento de Bolões](#tarefa-2---criação-e-gerenciamento-de-bolões)
    - [Tarefa 3: Realização de Palpites](#tarefa-3---realização-de-palpites)
-2. [Resumo Geral](#resumo-geral---phase-0)
-3. [Lições Aprendidas](#lições-aprendidas)
+2. [Fase 1: Core Features](#fase-1-core-features-durante-workshop)
+   - [Tarefa 4: Cálculo Automático de Pontuação](#tarefa-4---cálculo-automático-de-pontuação)
 
 ---
 
@@ -86,11 +86,13 @@ Atualize o @/README.md com as novas implementações
 Atualize a doc @/docs/validation/PHASE-0-IMPLEMENTATION.md com os detalhes da implementação
 ```
 
+---
+
 ## Fase 1: Core Features (Durante Workshop)
 
-### TAREFA 4. Cálculo Automático de Pontuação
+### TAREFA 4 - Cálculo Automático de Pontuação
 
-**Objetivo**: 
+**Objetivo**: Implementar sistema completo de cálculo automático de pontuação com regras configuráveis por bolão.
 
 #### 📝 Prompt Inicial
 
@@ -111,3 +113,5 @@ Atualize o @/README.md com as novas implementações.
 Crie a doc @/docs/validation/PHASE-1-CORE_FEATURES.md com os detalhes da implementação.
 Após aprovar, solicitarei as próximas fases.
 ```
+
+---
