@@ -10,8 +10,6 @@ Este documento registra os prompts utilizados no desenvolvimento do projeto Worl
    - [Tarefa 1: Cadastro de Jogos da Copa](#tarefa-1---cadastro-de-jogos-da-copa)
    - [Tarefa 2: Criação e Gerenciamento de Bolões](#tarefa-2---criação-e-gerenciamento-de-bolões)
    - [Tarefa 3: Realização de Palpites](#tarefa-3---realização-de-palpites)
-2. [Resumo Geral](#resumo-geral---phase-0)
-3. [Lições Aprendidas](#lições-aprendidas)
 
 ---
 
