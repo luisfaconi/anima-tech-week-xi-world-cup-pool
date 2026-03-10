@@ -39,6 +39,7 @@ describe('CreatePickUseCase', () => {
       findById: jest.fn(),
       list: jest.fn(),
       updateResult: jest.fn(),
+      hasFinishedMatches: jest.fn(),
     };
 
     mockUserRepository = {

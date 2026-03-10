@@ -47,6 +47,14 @@ export class PrismaMatchRepository implements MatchRepository {
     return this.toDomain(match);
   }
 
+  async hasFinishedMatches(): Promise<boolean> {
+    const count = await this.prisma.match.count({
+      where: { status: 'finished' },
+    });
+
+    return count > 0;
+  }
+
   private toDomain(match: any): Match {
     return {
       id: match.id,

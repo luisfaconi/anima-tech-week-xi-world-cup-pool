@@ -5,4 +5,5 @@ export interface MatchRepository {
   findById(id: number): Promise<Match | null>;
   list(): Promise<Match[]>;
   updateResult(id: number, resultData: UpdateMatchResultData): Promise<Match>;
+  hasFinishedMatches(): Promise<boolean>;
 }

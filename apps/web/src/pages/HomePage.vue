@@ -5,7 +5,7 @@
       <p class="welcome-subtitle">Seus bolões da Copa 2026</p>
     </section>
 
-    <div v-if="poolStore.loading" class="loading">Carregando...</div>
+    <div v-if="poolStore.loading || loadingStats" class="loading">Carregando...</div>
     <div v-else-if="poolStore.error" class="error">{{ poolStore.error }}</div>
 
     <div v-else class="stats-grid">
@@ -32,8 +32,10 @@
           <span class="stat-label">Posição Média</span>
           <span class="stat-icon">📊</span>
         </div>
-
-        <div class="coming-soon">Em breve</div>
+        <div v-if="userStats && userStats.hasFinishedMatches" class="stat-value">{{ userStats.averagePosition.toFixed(1) }}º</div>
+        <div v-else class="coming-soon">Aguardando resultados</div>
+        <div v-if="userStats && userStats.hasFinishedMatches" class="stat-description">{{ userStats.averagePoints.toFixed(1) }} pts médios</div>
+        <div v-else-if="userStats && userStats.totalPicks > 0" class="stat-description">{{ userStats.totalPicks }} palpites feitos</div>
       </div>
 
       <div class="stat-card purple">
@@ -69,11 +71,11 @@
         <div v-if="poolStore.pools.length === 0" class="empty-state">
           Você ainda não participa de nenhum bolão
         </div>
-        <button 
-          v-for="pool in poolStore.pools" 
+        <button
+          v-for="pool in poolStore.pools"
           :key="pool.id"
-          class="bolao-card" 
-          @click="viewPool(pool.id)"
+          class="bolao-card"
+          @click="goToPoolRanking(pool.id)"
         >
           <span>{{ pool.name }}</span>
           <span class="badge">{{ pool.memberCount }} pessoas</span>
@@ -88,6 +90,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePoolStore } from '../stores/poolStore'
 import { userService } from '../services/api/userService'
+import { leaderboardService, type UserStats } from '../services/api/leaderboardService'
 
 const router = useRouter()
 const poolStore = usePoolStore()
@@ -96,11 +99,25 @@ const poolStore = usePoolStore()
 const TEST_USER_EMAIL = 'joao@example.com'
 const userId = ref<number | null>(null)
 const username = ref('João Silva')
+const userStats = ref<UserStats | null>(null)
+const loadingStats = ref(false)
 
 const stats = computed(() => ({
   boloes: poolStore.pools.length,
   participantes: poolStore.pools.reduce((sum, pool) => sum + (pool.memberCount || 0), 0),
 }))
+
+const loadUserStats = async (id: number) => {
+  try {
+    loadingStats.value = true
+    userStats.value = await leaderboardService.getUserStats(id)
+  } catch (error) {
+    console.error('Error loading user stats:', error)
+    userStats.value = null
+  } finally {
+    loadingStats.value = false
+  }
+}
 
 onMounted(async () => {
   try {
@@ -111,6 +128,9 @@ onMounted(async () => {
     
     // Fetch pools for this user
     await poolStore.fetchUserPools(user.id)
+    
+    // Load user stats
+    await loadUserStats(user.id)
   } catch (error) {
     console.error('Error loading user:', error)
   }
@@ -126,12 +146,17 @@ const createPool = () => {
   }
 }
 
-const viewPool = (poolId: number) => {
-  console.log('Viewing pool', poolId)
+const goToPoolRanking = (poolId: number) => {
+  router.push(`/ranking/${poolId}`)
 }
 
 const goToRanking = () => {
-  router.push('/ranking')
+  // Go to first pool's ranking if available
+  if (poolStore.pools.length > 0) {
+    router.push(`/ranking/${poolStore.pools[0].id}`)
+  } else {
+    router.push('/ranking')
+  }
 }
 </script>
 

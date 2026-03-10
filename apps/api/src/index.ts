@@ -22,18 +22,22 @@ import { GetUserPicksUseCase } from './application/use-cases/pick/GetUserPicks';
 import { DeletePickUseCase } from './application/use-cases/pick/DeletePick';
 import { ListMatchesUseCase } from './application/use-cases/match/ListMatches';
 import { UpdateMatchResult } from './application/use-cases/match/UpdateMatchResult';
+import { GetPoolLeaderboard } from './application/use-cases/leaderboard/GetPoolLeaderboard';
+import { GetUserStats } from './application/use-cases/leaderboard/GetUserStats';
 
 // Controllers
 import { PoolController } from './interfaces/http/controllers/pool/PoolController';
 import { UserController } from './interfaces/http/controllers/user/UserController';
 import { PickController } from './interfaces/http/controllers/PickController';
 import { MatchController } from './interfaces/http/controllers/MatchController';
+import { LeaderboardController } from './interfaces/http/controllers/LeaderboardController';
 
 // Routes
 import { poolRoutes } from './interfaces/http/routes/pool/poolRoutes';
 import { userRoutes } from './interfaces/http/routes/user/userRoutes';
 import { pickRoutes } from './interfaces/http/routes/pickRoutes';
 import { matchRoutes } from './interfaces/http/routes/matchRoutes';
+import { leaderboardRoutes } from './interfaces/http/routes/leaderboardRoutes';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -75,6 +79,9 @@ async function bootstrap() {
   
   const listMatches = new ListMatchesUseCase(matchRepository);
   const updateMatchResult = new UpdateMatchResult(matchRepository, pickRepository, poolRepository);
+  
+  const getPoolLeaderboard = new GetPoolLeaderboard(pickRepository, poolRepository, userRepository, matchRepository);
+  const getUserStats = new GetUserStats(pickRepository, poolRepository, userRepository, matchRepository);
 
   // Initialize Controllers
   const poolController = new PoolController(
@@ -97,6 +104,8 @@ async function bootstrap() {
   );
   
   const matchController = new MatchController(listMatches, updateMatchResult);
+  
+  const leaderboardController = new LeaderboardController(getPoolLeaderboard, getUserStats);
 
   // Health check route
   fastify.get('/health', async () => {
@@ -136,6 +145,14 @@ async function bootstrap() {
   await fastify.register(
     async (instance) => {
       await matchRoutes(instance, matchController);
+    },
+    { prefix: '/api' }
+  );
+
+  // Register Leaderboard routes
+  await fastify.register(
+    async (instance) => {
+      await leaderboardRoutes(instance, leaderboardController);
     },
     { prefix: '/api' }
   );

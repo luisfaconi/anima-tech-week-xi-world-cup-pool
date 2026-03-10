@@ -132,7 +132,8 @@ GET    /api/picks/user/:userId       # Palpites do usuário (com filtro por pool
 DELETE /api/picks/:id                # Deletar palpite (antes do deadline)
 
 # Ranking
-GET    /api/leaderboard              # Ranking geral
+GET    /api/pools/:poolId/leaderboard # Ranking do bolão
+GET    /api/users/:userId/stats       # Estatísticas do usuário
 ```
 
 ## 🎯 Para IAs/Assistentes
@@ -226,6 +227,16 @@ docker compose down -v
   - Atualização em lote de todos os palpites do jogo
   - Endpoint admin para atualizar resultados
   - 15 testes adicionais (42 testes no total)
+
+- ✅ **Ranking do Bolão em Tempo Real** (Tarefa 5)
+  - Tabela classificatória dinâmica por bolão
+  - Ordenação por pontuação total com critérios de desempate
+  - Estatísticas individuais (acertos, pontos médios, posição média)
+  - Integração completa backend + frontend
+  - Rota dinâmica `/ranking/:poolId`
+  - Card de Posição Média na HomePage
+  - Navegação direta para ranking de cada bolão
+  - Endpoints: `GET /api/pools/:poolId/leaderboard` e `GET /api/users/:userId/stats`
 
 ### Qualidade e Arquitetura
 - ✅ Clean Architecture (Domain, Application, Infrastructure, Interface)

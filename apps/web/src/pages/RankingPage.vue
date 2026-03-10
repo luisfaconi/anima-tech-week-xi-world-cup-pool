@@ -4,7 +4,16 @@
       ← Voltar
     </button>
 
-    <div class="bolao-container">
+    <div v-if="loading" class="loading-state">
+      <p>Carregando dados do ranking...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button class="btn-retry" @click="loadData">Tentar novamente</button>
+    </div>
+
+    <div v-else class="bolao-container">
       <div class="bolao-header">
         <div class="bolao-title-section">
           <h1 class="bolao-title">{{ selectedPool?.name || 'Bolão da Copa 2026' }}</h1>
@@ -107,7 +116,59 @@
 
         <div class="tab-content">
           <div v-show="activeTab === 'ranking'" class="ranking-section">
-            <p class="empty-state">🏅 Seção de ranking em desenvolvimento</p>
+            <div class="section-header">
+              <h2 class="section-title">Classificação</h2>
+              <p class="section-subtitle">Ranking atualizado em tempo real</p>
+            </div>
+
+            <div v-if="loadingLeaderboard" class="empty-state">
+              Carregando ranking...
+            </div>
+
+            <div v-else-if="leaderboard.length === 0" class="empty-state">
+              Nenhum palpite registrado ainda neste bolão
+            </div>
+
+            <div v-else-if="!hasFinishedMatches" class="empty-state">
+              🎯 Aguardando resultados dos jogos
+              <p style="font-size: 0.9rem; margin-top: 0.5rem; color: #6b7280;">
+                {{ totalPicks }} palpites registrados. O ranking será exibido após o primeiro jogo finalizado.
+              </p>
+            </div>
+
+            <div v-else class="ranking-list">
+              <div
+                v-for="player in leaderboard"
+                :key="player.userId"
+                class="ranking-item"
+                :class="{ highlight: player.userId === testUser?.id }"
+              >
+                <div class="ranking-position">
+                  <span v-if="player.position <= 3" class="position-medal">
+                    {{ getMedal(player.position - 1) }}
+                  </span>
+                  <span class="position-number">{{ player.position }}º</span>
+                </div>
+
+                <div class="player-info">
+                  <div class="player-avatar">
+                    {{ getInitials(player.userName) }}
+                  </div>
+                  <div class="player-details">
+                    <span class="player-name">{{ player.userName }}</span>
+                    <span class="player-stats">
+                      {{ player.correctPicks }}/{{ player.totalPicks }} acertos
+                      <span v-if="player.exactScores > 0"> • {{ player.exactScores }} exatos</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="player-points">
+                  <span class="points-value">{{ player.totalPoints }}</span>
+                  <span class="points-label">pontos</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div v-show="activeTab === 'games'" class="games-section">
@@ -138,12 +199,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { userService, type User } from '../services/api/userService'
 import { poolService, type Pool } from '../services/api/poolService'
+import { leaderboardService, type LeaderboardEntry } from '../services/api/leaderboardService'
 
 const router = useRouter()
+const route = useRoute()
 
 // Test user - In a real app, this would come from authentication
 const TEST_USER_EMAIL = 'joao@example.com'
@@ -151,26 +214,19 @@ const testUser = ref<User | null>(null)
 const userPools = ref<Pool[]>([])
 const selectedPool = ref<Pool | null>(null)
 const selectedPoolId = ref<number | null>(null)
+const leaderboard = ref<LeaderboardEntry[]>([])
+const hasFinishedMatches = ref(false)
+const totalPicks = ref(0)
 
 const activeTab = ref('ranking')
 const participantsCount = ref(0)
-const exactScorePoints = ref(5)
-const winnerPoints = ref(3)
+const exactScorePoints = ref(3)
+const winnerPoints = ref(1)
 const showToast = ref(false)
 const toastMessage = ref('')
 const loading = ref(true)
+const loadingLeaderboard = ref(false)
 const error = ref('')
-
-interface PlayerRanking {
-  id: number
-  name: string
-  points: number
-  correctPredictions: number
-  gamesPlayed: number
-  isCurrentUser: boolean
-}
-
-const players = ref<PlayerRanking[]>([])
 
 const getMedal = (index: number) => {
   const medals = ['🥇', '🥈', '🥉']
@@ -186,23 +242,22 @@ const getInitials = (name: string) => {
     .slice(0, 2)
 }
 
-const loadPoolMembers = async (poolId: number) => {
+const loadLeaderboard = async (poolId: number) => {
   try {
-    const members = await poolService.getPoolMembers(poolId)
+    loadingLeaderboard.value = true
+    const response = await leaderboardService.getPoolLeaderboard(poolId)
+    leaderboard.value = response.entries
     
-    players.value = members.map((member, index) => ({
-      id: member.userId,
-      name: member.userName || `Usuário ${member.userId}`,
-      points: Math.max(0, 15 - index * 2), // Mock points
-      correctPredictions: Math.max(0, 6 - index), // Mock predictions
-      gamesPlayed: Math.min(10, 5 + index), // Mock games
-      isCurrentUser: testUser.value?.id === member.userId
-    }))
-    
-    players.value.sort((a, b) => b.points - a.points)
+    // Use backend validation to check if there are finished matches in the database
+    hasFinishedMatches.value = response.hasFinishedMatches
+    totalPicks.value = response.entries.reduce((sum, player) => sum + player.totalPicks, 0)
   } catch (err) {
-    console.error('Error loading pool members:', err)
-    players.value = []
+    console.error('Error loading leaderboard:', err)
+    leaderboard.value = []
+    hasFinishedMatches.value = false
+    totalPicks.value = 0
+  } finally {
+    loadingLeaderboard.value = false
   }
 }
 
@@ -211,6 +266,7 @@ const loadData = async () => {
     loading.value = true
     error.value = ''
 
+    // Load test user
     try {
       const user = await userService.getUserByEmail(TEST_USER_EMAIL)
       testUser.value = user
@@ -220,6 +276,7 @@ const loadData = async () => {
       return
     }
 
+    // Load user pools
     if (testUser.value) {
       try {
         const pools = await poolService.listUserPools(testUser.value.id)
@@ -228,12 +285,23 @@ const loadData = async () => {
           return
         }
         userPools.value = pools
-        selectedPool.value = pools[0]
-        selectedPoolId.value = pools[0].id
+
+        // Check if poolId is in route params
+        const routePoolId = route.params.poolId ? parseInt(route.params.poolId as string, 10) : null
+        
+        if (routePoolId && pools.find(p => p.id === routePoolId)) {
+          selectedPool.value = pools.find(p => p.id === routePoolId) || pools[0]
+          selectedPoolId.value = routePoolId
+        } else {
+          selectedPool.value = pools[0]
+          selectedPoolId.value = pools[0].id
+        }
         
         updatePoolStats()
         
-        await loadPoolMembers(pools[0].id)
+        if (selectedPoolId.value) {
+          await loadLeaderboard(selectedPoolId.value)
+        }
       } catch (err) {
         console.error('Error loading pools:', err)
         error.value = 'Erro ao carregar bolões do usuário.'
@@ -263,7 +331,9 @@ const onPoolChange = async () => {
   updatePoolStats()
   
   if (selectedPoolId.value) {
-    await loadPoolMembers(selectedPoolId.value)
+    await loadLeaderboard(selectedPoolId.value)
+    // Update URL without reloading
+    router.push(`/ranking/${selectedPoolId.value}`)
   }
 }
 
@@ -285,6 +355,20 @@ const goBack = () => {
   router.push('/')
 }
 
+// Watch for route changes
+watch(() => route.params.poolId, (newPoolId) => {
+  if (newPoolId && userPools.value.length > 0) {
+    const poolId = parseInt(newPoolId as string, 10)
+    const pool = userPools.value.find(p => p.id === poolId)
+    if (pool && selectedPoolId.value !== poolId) {
+      selectedPoolId.value = poolId
+      selectedPool.value = pool
+      updatePoolStats()
+      loadLeaderboard(poolId)
+    }
+  }
+})
+
 onMounted(() => {
   loadData()
 })
@@ -295,6 +379,43 @@ onMounted(() => {
   max-width: 1000px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.loading-state p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.error-state p {
+  color: #dc2626;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.btn-retry {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .btn-back {
@@ -664,10 +785,6 @@ onMounted(() => {
   .bolao-header {
     flex-direction: column;
     gap: 1rem;
-  }
-
-  .bolao-code-section {
-    align-items: flex-start;
   }
 
   .bolao-title {

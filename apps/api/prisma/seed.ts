@@ -124,7 +124,7 @@ async function main() {
   // Create matches
   console.log('📅 Creating World Cup matches...');
   const matches = await Promise.all(
-    WORLD_CUP_MATCHES.map(match =>
+    WORLD_CUP_MATCHES.map((match, index) =>
       prisma.match.create({
         data: {
           teamA: match.teamA,
@@ -135,11 +135,16 @@ async function main() {
           matchType: match.type || 'group',
           groupName: match.group,
           venue: match.venue,
-          status: 'scheduled'
+          // First match (Canadá vs México) is finished for demonstration
+          status: index === 0 ? 'finished' : 'scheduled',
+          teamAScore: index === 0 ? 2 : null,
+          teamBScore: index === 0 ? 1 : null
         }
       })
     )
   );
+  
+  console.log('🎯 First match (Canadá 2 x 1 México) set as finished for demonstration');
 
   // Create sample users
   console.log('👥 Creating sample users...');
@@ -253,6 +258,45 @@ async function main() {
   }
 
   await Promise.all(picks);
+  
+  // Calculate points for the finished match (first match)
+  console.log('🏆 Calculating points for finished match...');
+  const finishedMatch = matches[0];
+  const finishedMatchPicks = await prisma.pick.findMany({
+    where: { matchId: finishedMatch.id },
+    include: { pool: true }
+  });
+  
+  for (const pick of finishedMatchPicks) {
+    const predictedWinner = pick.predictedTeamAScore > pick.predictedTeamBScore ? 'A' :
+                           pick.predictedTeamAScore < pick.predictedTeamBScore ? 'B' : 'draw';
+    const actualWinner = finishedMatch.teamAScore! > finishedMatch.teamBScore! ? 'A' :
+                        finishedMatch.teamAScore! < finishedMatch.teamBScore! ? 'B' : 'draw';
+    
+    let points = 0;
+    const scoringRules = pick.pool.scoringRules as any;
+    
+    // Exact score
+    if (pick.predictedTeamAScore === finishedMatch.teamAScore &&
+        pick.predictedTeamBScore === finishedMatch.teamBScore) {
+      points = scoringRules.exact_score || 3;
+    }
+    // Correct winner
+    else if (predictedWinner === actualWinner && predictedWinner !== 'draw') {
+      points = scoringRules.correct_winner || 1;
+    }
+    // Wrong prediction
+    else {
+      points = scoringRules.wrong || 0;
+    }
+    
+    await prisma.pick.update({
+      where: { id: pick.id },
+      data: { points }
+    });
+  }
+  
+  console.log(`✅ Points calculated for ${finishedMatchPicks.length} picks`);
 
   // Create sample AI suggestions
   console.log('🤖 Creating AI suggestions...');
@@ -276,11 +320,12 @@ async function main() {
 
   console.log('✅ Seed completed successfully!');
   console.log(`📊 Created:
-  - ${matches.length} World Cup matches
+  - ${matches.length} World Cup matches (1 finished for demo)
   - ${users.length} sample users
   - ${pools.length} sample pools
   - Pool memberships for all users
   - Sample predictions for group stage
+  - Points calculated for finished match
   - AI suggestions for demonstration`);
 
   console.log('\n🎯 Pool invite codes:');
