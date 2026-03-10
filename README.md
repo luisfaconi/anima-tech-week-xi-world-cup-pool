@@ -42,11 +42,12 @@ pnpm --filter api seed
 
 ### Desenvolvimento
 ```bash
-# Terminal 1: API + Web
+# 1. Subir o banco (se não estiver rodando)
+pnpm db:up
+
+# 2. Iniciar aplicação
 pnpm dev
 
-# Terminal 2: Prisma Studio
-cd apps/api && npx prisma studio
 ```
 
 **Comandos Adicionais:**
@@ -59,6 +60,9 @@ pnpm --filter web dev
 
 # Testes
 pnpm test
+
+# Prisma Studio
+cd apps/api && npx prisma studio
 ```
 
 ## 🏗️ Arquitetura
@@ -191,6 +195,30 @@ pnpm db:down
 # Resetar banco (cuidado!)
 docker compose down -v
 ```
+
+## 🔄 Reinicialização Completa do Ambiente
+
+Se você precisa reiniciar o ambiente do zero (limpar todos os dados):
+
+```bash
+# 1. Parar e remover volumes (apaga todos os dados!)
+pnpm db:down
+docker compose down -v
+
+# 2. Subir banco novamente
+pnpm db:up
+
+# 4. Aplicar migrações
+pnpm --filter api db:migrate
+
+# 5. Popular com dados da Copa
+pnpm --filter api seed
+
+# 6. Iniciar desenvolvimento
+pnpm dev
+```
+
+> **⚠️ Nota:** O comando `docker compose down -v` remove TODOS os dados do banco permanentemente.
 
 ## 🌟 Features Implementadas
 

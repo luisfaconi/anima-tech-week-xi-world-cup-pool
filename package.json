@@ -8,7 +8,7 @@
     "test": "pnpm --filter api test",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "setup": "pnpm install && pnpm db:up && pnpm --filter api db:migrate",
+    "setup": "pnpm install && pnpm db:up && pnpm --filter api db:migrate && pnpm --filter api seed",
     "clean": "pnpm --filter api clean && pnpm --filter web clean"
   },
   "keywords": ["workshop", "spec-driven", "clean-architecture", "node", "vue"],
