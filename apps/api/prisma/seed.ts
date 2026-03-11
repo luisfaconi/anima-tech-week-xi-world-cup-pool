@@ -107,6 +107,28 @@ function generateInviteCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+// Generate random match result
+// 40% chance team A wins, 40% chance team B wins, 20% chance draw
+function generateMatchResult(): { teamAScore: number; teamBScore: number } {
+  const random = Math.random();
+  
+  if (random < 0.4) {
+    // Team A wins (40%)
+    const teamAScore = Math.floor(Math.random() * 3) + 1; // 1-3 goals
+    const teamBScore = Math.max(0, teamAScore - 1 - Math.floor(Math.random() * 2)); // 0 to teamAScore-1
+    return { teamAScore, teamBScore };
+  } else if (random < 0.8) {
+    // Team B wins (40%)
+    const teamBScore = Math.floor(Math.random() * 3) + 1; // 1-3 goals
+    const teamAScore = Math.max(0, teamBScore - 1 - Math.floor(Math.random() * 2)); // 0 to teamBScore-1
+    return { teamAScore, teamBScore };
+  } else {
+    // Draw (20%)
+    const score = Math.floor(Math.random() * 4); // 0-3 goals each
+    return { teamAScore: score, teamBScore: score };
+  }
+}
+
 async function main() {
   console.log('🌱 Starting World Cup Pool seed...');
 
@@ -119,26 +141,61 @@ async function main() {
   await prisma.pool.deleteMany({});
   await prisma.match.deleteMany({});
   await prisma.user.deleteMany({});
-  console.log('✅ Database cleaned successfully');
+  
+  // Reset auto-increment IDs (RESTART IDENTITY equivalent)
+  console.log('🔄 Resetting ID sequences...');
+  await prisma.$executeRaw`ALTER SEQUENCE users_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE pools_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE pool_memberships_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE matches_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE picks_id_seq RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE "ai_suggestions_id_seq" RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE calendar_events_id_seq RESTART WITH 1`;
+  
+  console.log('✅ Database cleaned and IDs reset successfully');
 
   // Create matches
   console.log('📅 Creating World Cup matches...');
   const matches = await Promise.all(
-    WORLD_CUP_MATCHES.map(match =>
-      prisma.match.create({
-        data: {
-          teamA: match.teamA,
-          teamB: match.teamB,
-          teamAFlag: match.teamAFlag,
-          teamBFlag: match.teamBFlag,
-          scheduledAt: new Date(match.date),
-          matchType: match.type || 'group',
-          groupName: match.group,
-          venue: match.venue,
-          status: 'scheduled'
-        }
-      })
-    )
+    WORLD_CUP_MATCHES.map(match => {
+      // Check if teams are defined (not TBD)
+      const hasDefinedTeams = match.teamA !== 'TBD' && match.teamB !== 'TBD';
+      
+      if (hasDefinedTeams) {
+        // Generate random result for matches with defined teams
+        const result = generateMatchResult();
+        return prisma.match.create({
+          data: {
+            teamA: match.teamA,
+            teamB: match.teamB,
+            teamAFlag: match.teamAFlag,
+            teamBFlag: match.teamBFlag,
+            scheduledAt: new Date(match.date),
+            matchType: match.type || 'group',
+            groupName: match.group,
+            venue: match.venue,
+            status: 'finished',
+            teamAScore: result.teamAScore,
+            teamBScore: result.teamBScore
+          }
+        });
+      } else {
+        // TBD matches remain scheduled without results
+        return prisma.match.create({
+          data: {
+            teamA: match.teamA,
+            teamB: match.teamB,
+            teamAFlag: match.teamAFlag,
+            teamBFlag: match.teamBFlag,
+            scheduledAt: new Date(match.date),
+            matchType: match.type || 'group',
+            groupName: match.group,
+            venue: match.venue,
+            status: 'scheduled'
+          }
+        });
+      }
+    })
   );
 
   // Create sample users
@@ -193,7 +250,7 @@ async function main() {
 
   // Create pool memberships
   console.log('🎫 Adding users to pools...');
-  await Promise.all([
+  const memberships = await Promise.all([
     // Pool 1 memberships
     prisma.poolMembership.create({
       data: { poolId: pools[0].id, userId: users[0].id }
@@ -224,38 +281,38 @@ async function main() {
   ]);
 
   // Create sample picks for group stage matches
-  console.log('⚽ Creating sample predictions...');
-  const groupMatches = matches.filter(match => match.matchType === 'group').slice(0, 6);
-
+  console.log('⚽ Creating predictions for all pool members...');
+  
   const picks = [];
-  for (const match of groupMatches) {
-    for (const pool of pools) {
-      for (const user of users.slice(0, 3)) {
-        // Only create pick if user is member of this pool
-        const membership = await prisma.poolMembership.findUnique({
-          where: { poolId_userId: { poolId: pool.id, userId: user.id } }
-        });
-
-        if (membership) {
-          picks.push(prisma.pick.create({
-            data: {
-              userId: user.id,
-              matchId: match.id,
-              poolId: pool.id,
-              predictedTeamAScore: Math.floor(Math.random() * 4),
-              predictedTeamBScore: Math.floor(Math.random() * 4),
-              aiSuggested: Math.random() > 0.7 // 30% chance of AI suggestion
-            }
-          }));
-        }
+  // For each pool
+  for (const pool of pools) {
+    // Get all members of this pool
+    const poolMembers = memberships.filter(m => m.poolId === pool.id);
+    
+    // For each member
+    for (const membership of poolMembers) {
+      // Create picks for ALL matches
+      for (const match of matches) {
+        picks.push(prisma.pick.create({
+          data: {
+            userId: membership.userId,
+            matchId: match.id,
+            poolId: pool.id,
+            predictedTeamAScore: Math.floor(Math.random() * 4),
+            predictedTeamBScore: Math.floor(Math.random() * 4),
+            aiSuggested: Math.random() > 0.7 // 30% chance of AI suggestion
+          }
+        }));
       }
     }
   }
 
   await Promise.all(picks);
+  console.log(`✅ Created ${picks.length} predictions across all pools and matches`);
 
   // Create sample AI suggestions
   console.log('🤖 Creating AI suggestions...');
+  const groupMatches = matches.filter(match => match.matchType === 'group');
   const aiSuggestions = [];
   for (const match of groupMatches.slice(0, 3)) {
     for (const user of users.slice(0, 2)) {
@@ -274,14 +331,19 @@ async function main() {
 
   await Promise.all(aiSuggestions);
 
+  // Statistics
+  const finishedMatches = matches.filter(m => m.status === 'finished');
+  const scheduledMatches = matches.filter(m => m.status === 'scheduled');
+  const totalPicks = picks.length;
+
   console.log('✅ Seed completed successfully!');
   console.log(`📊 Created:
-  - ${matches.length} World Cup matches
+  - ${matches.length} World Cup matches (${finishedMatches.length} finished, ${scheduledMatches.length} scheduled)
   - ${users.length} sample users
   - ${pools.length} sample pools
-  - Pool memberships for all users
-  - Sample predictions for group stage
-  - AI suggestions for demonstration`);
+  - ${memberships.length} pool memberships
+  - ${totalPicks} predictions (all members x all matches)
+  - ${aiSuggestions.length} AI suggestions for demonstration`);
 
   console.log('\n🎯 Pool invite codes:');
   pools.forEach(pool => {
