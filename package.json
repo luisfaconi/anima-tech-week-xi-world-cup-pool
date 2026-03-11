@@ -11,7 +11,13 @@
     "setup": "pnpm install && pnpm db:up && pnpm --filter api db:migrate && pnpm --filter api seed",
     "clean": "pnpm --filter api clean && pnpm --filter web clean"
   },
-  "keywords": ["workshop", "spec-driven", "clean-architecture", "node", "vue"],
+  "keywords": [
+    "workshop",
+    "spec-driven",
+    "clean-architecture",
+    "node",
+    "vue"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
@@ -20,5 +26,8 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
   }
 }
