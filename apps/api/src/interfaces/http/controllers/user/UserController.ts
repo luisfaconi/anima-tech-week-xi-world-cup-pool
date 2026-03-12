@@ -1,9 +1,13 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserRepository } from '../../../../application/ports/user/UserRepository';
+import { GetUserStats } from '../../../../application/use-cases/user/GetUserStats';
 import { DomainError } from '../../../../domain/errors/DomainError';
 
 export class UserController {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private userRepository: UserRepository,
+    private getUserStats?: GetUserStats
+  ) {}
 
   async getByEmail(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -46,6 +50,29 @@ export class UserController {
       return reply.send({
         success: true,
         data: users,
+      });
+    } catch (error) {
+      return this.handleError(error, reply);
+    }
+  }
+
+  async getStats(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      if (!this.getUserStats) {
+        return reply.status(501).send({
+          success: false,
+          error: {
+            message: 'User stats not implemented',
+            code: 'NOT_IMPLEMENTED',
+          },
+        });
+      }
+
+      const { id } = request.params as any;
+      const stats = await this.getUserStats.execute({ userId: Number(id) });
+      return reply.send({
+        success: true,
+        data: stats,
       });
     } catch (error) {
       return this.handleError(error, reply);

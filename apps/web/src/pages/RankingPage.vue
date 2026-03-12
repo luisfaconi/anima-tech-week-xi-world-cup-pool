@@ -107,7 +107,40 @@
 
         <div class="tab-content">
           <div v-show="activeTab === 'ranking'" class="ranking-section">
-            <p class="empty-state">🏅 Seção de ranking em desenvolvimento</p>
+            <div v-if="loading" class="loading-state">Carregando ranking...</div>
+            <div v-else-if="error" class="error-state">{{ error }}</div>
+            <div v-else-if="rankingData.length === 0" class="empty-state">
+              Nenhum ranking disponível para este bolão
+            </div>
+            <div v-else class="ranking-list">
+              <div
+                v-for="(player, index) in rankingData"
+                :key="player.userId"
+                class="ranking-item"
+                :class="{ highlight: player.userId === testUser?.id }"
+              >
+                <div class="ranking-position">
+                  <span v-if="index < 3" class="position-medal">{{ getMedal(index) }}</span>
+                  <span class="position-number">{{ player.position }}º</span>
+                </div>
+                <div class="player-info">
+                  <div class="player-avatar">{{ getInitials(player.userName) }}</div>
+                  <div class="player-details">
+                    <div class="player-name">
+                      {{ player.userName }}
+                      <span v-if="player.userId === testUser?.id" class="badge-you">Você</span>
+                    </div>
+                    <div class="player-stats">
+                      {{ player.totalPicks }} palpites • {{ player.correctPicks }} acertos
+                      <span v-if="player.exactScorePicks > 0">
+                        • {{ player.exactScorePicks }} placar{{ player.exactScorePicks > 1 ? 'es' : '' }} exato{{ player.exactScorePicks > 1 ? 's' : '' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="player-points">{{ player.totalPoints }} pts</div>
+              </div>
+            </div>
           </div>
 
           <div v-show="activeTab === 'games'" class="games-section">
@@ -139,11 +172,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { userService, type User } from '../services/api/userService'
-import { poolService, type Pool } from '../services/api/poolService'
+import { poolService, type Pool, type RankingEntry } from '../services/api/poolService'
 
 const router = useRouter()
+const route = useRoute()
 
 // Test user - In a real app, this would come from authentication
 const TEST_USER_EMAIL = 'joao@example.com'
@@ -161,16 +195,7 @@ const toastMessage = ref('')
 const loading = ref(true)
 const error = ref('')
 
-interface PlayerRanking {
-  id: number
-  name: string
-  points: number
-  correctPredictions: number
-  gamesPlayed: number
-  isCurrentUser: boolean
-}
-
-const players = ref<PlayerRanking[]>([])
+const rankingData = ref<RankingEntry[]>([])
 
 const getMedal = (index: number) => {
   const medals = ['🥇', '🥈', '🥉']
@@ -186,23 +211,17 @@ const getInitials = (name: string) => {
     .slice(0, 2)
 }
 
-const loadPoolMembers = async (poolId: number) => {
+const loadRanking = async (poolId: number) => {
   try {
-    const members = await poolService.getPoolMembers(poolId)
-    
-    players.value = members.map((member, index) => ({
-      id: member.userId,
-      name: member.userName || `Usuário ${member.userId}`,
-      points: Math.max(0, 15 - index * 2), // Mock points
-      correctPredictions: Math.max(0, 6 - index), // Mock predictions
-      gamesPlayed: Math.min(10, 5 + index), // Mock games
-      isCurrentUser: testUser.value?.id === member.userId
-    }))
-    
-    players.value.sort((a, b) => b.points - a.points)
+    loading.value = true
+    const ranking = await poolService.getPoolRanking(poolId)
+    rankingData.value = ranking.ranking
   } catch (err) {
-    console.error('Error loading pool members:', err)
-    players.value = []
+    console.error('Error loading ranking:', err)
+    rankingData.value = []
+    error.value = 'Erro ao carregar ranking'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -217,6 +236,7 @@ const loadData = async () => {
     } catch (err) {
       console.error('Error loading user:', err)
       error.value = 'Usuário de teste não encontrado. Execute o seed do banco de dados.'
+      loading.value = false
       return
     }
 
@@ -225,18 +245,29 @@ const loadData = async () => {
         const pools = await poolService.listUserPools(testUser.value.id)
         if (pools.length === 0) {
           error.value = 'Usuário não está em nenhum bolão. Execute o seed do banco de dados.'
+          loading.value = false
           return
         }
         userPools.value = pools
-        selectedPool.value = pools[0]
-        selectedPoolId.value = pools[0].id
+        
+        // Check if poolId is passed in route params
+        const poolIdParam = route.params.id ? Number(route.params.id) : null
+        
+        if (poolIdParam && pools.find(p => p.id === poolIdParam)) {
+          selectedPool.value = pools.find(p => p.id === poolIdParam) || pools[0]
+          selectedPoolId.value = poolIdParam
+        } else {
+          selectedPool.value = pools[0]
+          selectedPoolId.value = pools[0].id
+        }
         
         updatePoolStats()
         
-        await loadPoolMembers(pools[0].id)
+        await loadRanking(selectedPoolId.value!)
       } catch (err) {
         console.error('Error loading pools:', err)
         error.value = 'Erro ao carregar bolões do usuário.'
+        loading.value = false
         return
       }
     }
@@ -263,7 +294,7 @@ const onPoolChange = async () => {
   updatePoolStats()
   
   if (selectedPoolId.value) {
-    await loadPoolMembers(selectedPoolId.value)
+    await loadRanking(selectedPoolId.value)
   }
 }
 
@@ -505,6 +536,35 @@ onMounted(() => {
   min-height: 300px;
 }
 
+.loading-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.error-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #dc2626;
+  font-size: 0.9rem;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .section-header {
   margin-bottom: 1rem;
 }
@@ -600,6 +660,18 @@ onMounted(() => {
 .player-stats {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+.badge-you {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
 }
 
 .player-points {

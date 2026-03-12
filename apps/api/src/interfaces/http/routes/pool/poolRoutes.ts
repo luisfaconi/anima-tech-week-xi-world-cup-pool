@@ -25,4 +25,7 @@ export async function poolRoutes(
 
   // Remove pool member
   fastify.delete('/pools/:id/members/:userId', (request, reply) => controller.removeMember(request, reply));
+
+  // Get pool ranking
+  fastify.get('/pools/:id/ranking', (request, reply) => controller.getRanking(request, reply));
 }

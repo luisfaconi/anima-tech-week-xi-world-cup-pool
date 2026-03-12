@@ -10,4 +10,7 @@ export async function userRoutes(
   
   // List all users
   fastify.get('/users/all', (request, reply) => controller.list(request, reply));
+
+  // Get user stats
+  fastify.get('/users/:id/stats', (request, reply) => controller.getStats(request, reply));
 }

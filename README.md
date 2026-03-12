@@ -127,6 +127,7 @@ GET    /api/pools/:id/members        # Listar membros
 # Partidas
 GET    /api/matches                  # Listar partidas
 GET    /api/matches/:id              # Buscar partida
+PUT    /api/matches/:id/result       # Atualizar resultado (admin)
 
 # Palpites
 POST   /api/picks                    # Criar palpite
@@ -244,9 +245,22 @@ pnpm dev
   - Histórico de palpites do usuário
   - Suporte a múltiplos bolões por usuário
 
+### Phase 1: Core Features
+- ✅ **Cálculo Automático de Pontuação** (Tarefa 4)
+  - Sistema flexível de cálculo de pontos
+  - Regras configuráveis por bolão:
+    - Pontos por placar exato
+    - Pontos por diferença de gols (opcional)
+    - Pontos por vencedor correto
+    - Pontos por palpite errado (pode ser negativo)
+  - Cálculo automático ao finalizar partida
+  - Atualização de resultados de partidas (admin)
+  - Suporte a múltiplos sistemas de pontuação simultâneos
+  - Histórico de pontuação por palpite
+
 ### Qualidade e Arquitetura
 - ✅ Clean Architecture (Domain, Application, Infrastructure, Interface)
-- ✅ Testes unitários (20 testes passando)
+- ✅ Testes unitários (39 testes passando)
 - ✅ Validação de dados (Zod)
 - ✅ Tratamento de erros consistente
 - ✅ Documentação completa

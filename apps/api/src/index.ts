@@ -16,11 +16,14 @@ import { ListUserPools } from './application/use-cases/pool/ListUserPools';
 import { UpdatePool } from './application/use-cases/pool/UpdatePool';
 import { RemovePoolMember } from './application/use-cases/pool/RemovePoolMember';
 import { GetPoolMembers } from './application/use-cases/pool/GetPoolMembers';
+import { GetPoolRanking } from './application/use-cases/pool/GetPoolRanking';
 import { CreatePickUseCase } from './application/use-cases/pick/CreatePick';
 import { UpdatePickUseCase } from './application/use-cases/pick/UpdatePick';
 import { GetUserPicksUseCase } from './application/use-cases/pick/GetUserPicks';
 import { DeletePickUseCase } from './application/use-cases/pick/DeletePick';
 import { ListMatchesUseCase } from './application/use-cases/match/ListMatches';
+import { UpdateMatchResult } from './application/use-cases/match/UpdateMatchResult';
+import { GetUserStats } from './application/use-cases/user/GetUserStats';
 
 // Controllers
 import { PoolController } from './interfaces/http/controllers/pool/PoolController';
@@ -66,6 +69,7 @@ async function bootstrap() {
   const updatePool = new UpdatePool(poolRepository);
   const removePoolMember = new RemovePoolMember(poolRepository, userRepository);
   const getPoolMembers = new GetPoolMembers(poolRepository, userRepository);
+  const getPoolRanking = new GetPoolRanking(poolRepository, pickRepository, userRepository);
   
   const createPick = new CreatePickUseCase(pickRepository, matchRepository, userRepository, poolRepository);
   const updatePick = new UpdatePickUseCase(pickRepository, matchRepository);
@@ -73,6 +77,8 @@ async function bootstrap() {
   const deletePick = new DeletePickUseCase(pickRepository, matchRepository);
   
   const listMatches = new ListMatchesUseCase(matchRepository);
+  const updateMatchResult = new UpdateMatchResult(matchRepository, pickRepository, poolRepository);
+  const getUserStats = new GetUserStats(userRepository, poolRepository, pickRepository);
 
   // Initialize Controllers
   const poolController = new PoolController(
@@ -82,10 +88,11 @@ async function bootstrap() {
     listUserPools,
     updatePool,
     removePoolMember,
-    getPoolMembers
+    getPoolMembers,
+    getPoolRanking
   );
   
-  const userController = new UserController(userRepository);
+  const userController = new UserController(userRepository, getUserStats);
   
   const pickController = new PickController(
     createPick,
@@ -94,7 +101,7 @@ async function bootstrap() {
     deletePick
   );
   
-  const matchController = new MatchController(listMatches);
+  const matchController = new MatchController(listMatches, updateMatchResult);
 
   // Health check route
   fastify.get('/health', async () => {

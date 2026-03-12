@@ -102,3 +102,19 @@ export class UnauthorizedPoolActionError extends DomainError {
     super(`Unauthorized: ${action}`);
   }
 }
+
+export class InvalidMatchScoreError extends DomainError {
+  readonly code = 'INVALID_MATCH_SCORE';
+
+  constructor(message: string = 'Scores must be non-negative') {
+    super(message);
+  }
+}
+
+export class InvalidMatchStatusError extends DomainError {
+  readonly code = 'INVALID_MATCH_STATUS';
+
+  constructor(message: string) {
+    super(message);
+  }
+}

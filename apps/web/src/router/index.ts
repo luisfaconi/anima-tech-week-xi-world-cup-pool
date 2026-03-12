@@ -19,7 +19,7 @@ const router = createRouter({
       component: () => import('../pages/PoolPage.vue'),
     },
     {
-      path: '/ranking',
+      path: '/ranking/:id',
       name: 'ranking',
       component: () => import('../pages/RankingPage.vue'),
     },

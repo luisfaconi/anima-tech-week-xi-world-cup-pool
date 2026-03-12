@@ -33,7 +33,13 @@
           <span class="stat-icon">📊</span>
         </div>
 
-        <div class="coming-soon">Em breve</div>
+        <div v-if="userStats && userStats.averagePosition !== null" class="stat-value">
+          {{ userStats.averagePosition.toFixed(1) }}º
+        </div>
+        <div v-else class="coming-soon">Sem dados</div>
+        <div v-if="userStats && userStats.averagePosition !== null" class="stat-description">
+          posição média em {{ stats.boloes }} {{ stats.boloes === 1 ? 'bolão' : 'bolões' }}
+        </div>
       </div>
 
       <div class="stat-card purple">
@@ -87,7 +93,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePoolStore } from '../stores/poolStore'
-import { userService } from '../services/api/userService'
+import { userService, type UserStats } from '../services/api/userService'
 
 const router = useRouter()
 const poolStore = usePoolStore()
@@ -96,6 +102,7 @@ const poolStore = usePoolStore()
 const TEST_USER_EMAIL = 'joao@example.com'
 const userId = ref<number | null>(null)
 const username = ref('João Silva')
+const userStats = ref<UserStats | null>(null)
 
 const stats = computed(() => ({
   boloes: poolStore.pools.length,
@@ -111,6 +118,9 @@ onMounted(async () => {
     
     // Fetch pools for this user
     await poolStore.fetchUserPools(user.id)
+    
+    // Fetch user statistics
+    userStats.value = await userService.getUserStats(user.id)
   } catch (error) {
     console.error('Error loading user:', error)
   }
@@ -127,11 +137,14 @@ const createPool = () => {
 }
 
 const viewPool = (poolId: number) => {
-  console.log('Viewing pool', poolId)
+  router.push(`/ranking/${poolId}`)
 }
 
 const goToRanking = () => {
-  router.push('/ranking')
+  // Navigate to first pool's ranking if available
+  if (poolStore.pools.length > 0) {
+    router.push(`/ranking/${poolStore.pools[0].id}`)
+  }
 }
 </script>
 

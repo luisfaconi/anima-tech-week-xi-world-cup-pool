@@ -46,6 +46,23 @@ export interface PoolMember {
   joinedAt: string;
 }
 
+export interface RankingEntry {
+  userId: number;
+  userName: string;
+  userEmail: string;
+  totalPoints: number;
+  totalPicks: number;
+  correctPicks: number;
+  exactScorePicks: number;
+  position: number;
+}
+
+export interface PoolRanking {
+  poolId: number;
+  poolName: string;
+  ranking: RankingEntry[];
+}
+
 export const poolService = {
   async createPool(data: CreatePoolRequest): Promise<Pool> {
     const response = await httpClient.post<Pool>('/pools', data);
@@ -87,5 +104,11 @@ export const poolService = {
     await httpClient.delete(`/pools/${poolId}/members/${userId}`, {
       data: { requesterId },
     });
+  },
+
+  async getPoolRanking(poolId: number): Promise<PoolRanking> {
+    const response = await httpClient.get<PoolRanking>(`/pools/${poolId}/ranking`);
+    if (!response.data) throw new Error('No data returned from server');
+    return response.data;
   },
 };

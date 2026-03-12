@@ -6,6 +6,7 @@ import { ListUserPools } from '../../../../application/use-cases/pool/ListUserPo
 import { UpdatePool } from '../../../../application/use-cases/pool/UpdatePool';
 import { RemovePoolMember } from '../../../../application/use-cases/pool/RemovePoolMember';
 import { GetPoolMembers } from '../../../../application/use-cases/pool/GetPoolMembers';
+import { GetPoolRanking } from '../../../../application/use-cases/pool/GetPoolRanking';
 import { DomainError } from '../../../../domain/errors/DomainError';
 
 export class PoolController {
@@ -16,7 +17,8 @@ export class PoolController {
     private listUserPools: ListUserPools,
     private updatePool: UpdatePool,
     private removePoolMember: RemovePoolMember,
-    private getPoolMembers: GetPoolMembers
+    private getPoolMembers: GetPoolMembers,
+    private getPoolRanking: GetPoolRanking
   ) {}
 
   async create(request: FastifyRequest, reply: FastifyReply) {
@@ -119,6 +121,19 @@ export class PoolController {
       
       await this.removePoolMember.execute(id, requesterId, userId);
       return reply.status(204).send();
+    } catch (error) {
+      return this.handleError(error, reply);
+    }
+  }
+
+  async getRanking(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { id } = request.params as any;
+      const ranking = await this.getPoolRanking.execute({ poolId: Number(id) });
+      return reply.send({
+        success: true,
+        data: ranking,
+      });
     } catch (error) {
       return this.handleError(error, reply);
     }

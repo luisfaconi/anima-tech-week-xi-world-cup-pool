@@ -7,4 +7,9 @@ export async function matchRoutes(
 ) {
   // List all matches
   fastify.get('/matches', (request, reply) => controller.list(request, reply));
+
+  // Update match result (admin operation)
+  fastify.put('/matches/:id/result', (request, reply) =>
+    controller.updateResult(request, reply)
+  );
 }

@@ -9,5 +9,6 @@ export interface PickRepository {
   findByMatchId(matchId: number): Promise<Pick[]>;
   findByPoolId(poolId: number): Promise<Pick[]>;
   update(id: number, pickData: UpdatePickData): Promise<Pick>;
+  updatePoints(id: number, points: number): Promise<Pick>;
   delete(id: number): Promise<void>;
 }
